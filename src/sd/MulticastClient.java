@@ -13,6 +13,7 @@ class MulticastClient extends Thread {
     public static void main(String[] args) {
         MulticastClient client = new MulticastClient();
         client.start();
+        System.out.println("sobral gay");
     }
 
     public void run() {
