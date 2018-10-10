@@ -39,4 +39,27 @@ public class user implements Serializable{
     public String getNum_cc() {
         return num_cc;
     }
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+    public void setNum_cc(String num_cc) {
+        this.num_cc = num_cc;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public void setPhone_num(int phone_num) {
+        this.phone_num = phone_num;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }
