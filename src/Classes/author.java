@@ -2,13 +2,13 @@ package Classes;
 
 import java.util.ArrayList;
 
-public class author {
+public class author extends user{
 
     private ArrayList<music> singles;
     private ArrayList<album> albuns;
 
-    public author(String username, String password, String nome, int phone_num, String address, String num_cc){
-        super(username,password,nome,phone_num,address,num_cc);
+    public author(int permissions, String username, String password, String nome, int phone_num, String address, String num_cc){
+        super(permissions, username,password,nome,phone_num,address,num_cc);
         this.singles = new ArrayList<>();
         this.albuns = new ArrayList<>();
     }
