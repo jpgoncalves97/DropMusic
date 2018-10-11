@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class user implements Serializable{
+    private int permissions;
     private String username;
     private String password;
     private String nome;
@@ -12,7 +13,8 @@ public class user implements Serializable{
     private String address;
     private String num_cc;
 
-    public user(String username, String password, String nome, int phone_num, String address, String num_cc){
+    public user(int permissions, String username, String password, String nome, int phone_num, String address, String num_cc){
+        this.permissions = permissions;
         this.username=username;
         this.password=password;
         this.nome=nome;
@@ -21,6 +23,9 @@ public class user implements Serializable{
         this.num_cc=num_cc;
     }
 
+    public int getPermissions() {
+        return permissions;
+    }
     public String getUsername(){
         return this.username;
     }
@@ -56,6 +61,9 @@ public class user implements Serializable{
     }
     public void setUsername(String username) {
         this.username = username;
+    }
+    public void setPermissions(int permissions) {
+        this.permissions = permissions;
     }
 
     @Override
