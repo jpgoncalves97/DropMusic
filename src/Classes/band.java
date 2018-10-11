@@ -9,7 +9,6 @@ import java.util.Date;
 public class band {
     private ArrayList<author> authors;
     private Timestamp creation_date;
-    private
     public band(){
         authors = new ArrayList<>();
     }
