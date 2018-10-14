@@ -3,6 +3,7 @@ package sd;
 
 import Classes.*;
 
+import java.net.MulticastSocket;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
@@ -28,33 +29,35 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class rmi_server extends UnicastRemoteObject implements rmi_interface_client{
+public class rmi_server extends UnicastRemoteObject implements rmi_interface_client {
     private int test_var;
 
-    private rmi_server() throws RemoteException, ParseException{
+    private rmi_server() throws RemoteException, ParseException {
         test_var = 0;
     }
 
-    public static void main(String args[]) throws ParseException{
+    public static void main(String args[]) throws ParseException {
 
 
-        try{
+        try {
             rmi_server servidorRMI;
             servidorRMI = new rmi_server();
             Registry registry = LocateRegistry.createRegistry(6789);
             registry.rebind("192.1", servidorRMI);
             System.err.println("servidor rmi online ...");
-        } catch(RemoteException e) {
-            System.out.print("Exception in RMI Server.main: "+e);
+        } catch (RemoteException e) {
+            System.out.print("Exception in RMI Server.main: " + e);
         }
     }
 
-    public boolean test(int n) throws RemoteException{
+    public boolean test(int n) throws RemoteException {
         return n != 0;
     }
     //#1
     @Override
     public boolean regUser(int permissions, String username, String password, String nome, int phone_num, String address, String num_cc) {
+
+
         return true;
     }
     //#3 & 4

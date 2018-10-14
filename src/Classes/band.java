@@ -25,7 +25,7 @@ public class band {
     public void setMusicos(ArrayList<author> musicos) {
         this.authors = musicos;
     }
-    public void add_musicos(author user_musico){
+    public void addMusicos(author user_musico){
         this.authors.add(user_musico);
     }
 
