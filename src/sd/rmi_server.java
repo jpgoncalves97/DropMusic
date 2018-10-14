@@ -1,6 +1,7 @@
 package sd;
 
-
+import java.util.HashMap;
+import java.util.Map;
 import Classes.*;
 
 import java.rmi.registry.Registry;
@@ -29,10 +30,17 @@ import java.util.logging.Logger;
 
 
 public class rmi_server extends UnicastRemoteObject implements rmi_interface_client{
-    private int test_var;
 
-    private rmi_server() throws RemoteException, ParseException{
-        test_var = 0;
+    static ArrayList<rmi_interface_client> clientes_online;
+
+    private rmi_server() throws RemoteException{
+        super();
+    }
+
+    public void online(user user, rmi_interface_client c) throws RemoteException {
+        System.out.println("Subscribing " + user.getNome());
+        System.out.print("> ");
+        clientes_online.add(c);
     }
 
     public static void main(String args[]) throws ParseException{
@@ -54,8 +62,28 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
     //#1
     @Override
-    public boolean regUser(int permissions, String username, String password, String nome, int phone_num, String address, String num_cc) {
+    public boolean regUser(user user) {
+        Map<String,String> reguser = new HashMap<String,String>();
+        reguser.put("type",new String("regUser"));
+        reguser.put("num_cc",Integer.toString(user.getNum_cc()));
+        reguser.put("nome",user.getNome());
+        reguser.put("username",user.getUsername());
+        reguser.put("password",user.getPassword());
+        reguser.put("idade",Integer.toString(user.getIdade()));
+        reguser.put("num_phone",Integer.toString(user.getPhone_num()));
+        reguser.put("address",user.getAddress());
+        String temp = (user.isEditor() != false) ? "true" : "false";
+        reguser.put("editor",temp);
+        //enviar o reguser por multicast
+
+
         return true;
+    }
+    public user login(String username,String password){
+        return null;
+    }
+    public boolean usertest(int cc){
+        return false;
     }
     //#3 & 4
     @Override

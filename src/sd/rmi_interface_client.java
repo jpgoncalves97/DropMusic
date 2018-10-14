@@ -14,8 +14,9 @@ public interface rmi_interface_client extends Remote {
     boolean test(int n) throws RemoteException;//0=false
 
     //#1
-    boolean regUser(int permissions, String username, String password, String nome, int phone_num, String address, String num_cc) throws RemoteException;
-
+    boolean regUser(user user) throws RemoteException;
+    boolean usertest(int cc) throws RemoteException;
+    user login(String username,String password) throws RemoteException;
     //#2 gerir artistas, albuns e musicas
 
     //#3 & 4
@@ -33,6 +34,7 @@ public interface rmi_interface_client extends Remote {
     boolean giverights(user user) throws RemoteException;
 
     //#7 & #8 NOTIFICATIONS and #9 delay notifications
+    void online(user user, rmi_interface_client c) throws RemoteException;
 
     //#10/#12 upload/download files to/from multicast servers
 
