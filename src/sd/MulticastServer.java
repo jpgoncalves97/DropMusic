@@ -54,9 +54,7 @@ class MulticastServer extends Thread {
                         group = InetAddress.getByName(MulticastServer.MULTICAST_ADDRESS);
                         while (true) {
                             try {
-                                music m = new music("garagem da vizinha", true);
-                                String msg = m.toString();
-                                byte[] buffer = msg.getBytes();
+                                byte[] buffer = new byte[1024];
                                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MulticastServer.PORT);
                                 socket.send(packet);
                             } catch (IOException e) {
