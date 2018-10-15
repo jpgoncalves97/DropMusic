@@ -3,7 +3,6 @@ package sd;
 
 import Classes.*;
 
-import java.net.MulticastSocket;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
@@ -53,48 +52,60 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     public boolean test(int n) throws RemoteException {
         return n != 0;
     }
+
     //#1
     @Override
     public boolean regUser(int permissions, String username, String password, String nome, int phone_num, String address, String num_cc) {
-
-
         return true;
     }
+
+    public boolean usertest(int cc) {
+        return true;
+    }
+
     //#3 & 4
     @Override
     public ArrayList<album> showallalbuns() {
         return null;
     }
+
     @Override
     public ArrayList<author> showallauthors() {
         return null;
     }
+
     @Override
     public ArrayList<String> showallgenres() {
         return null;
     }
+
     @Override
     public ArrayList<music> showallsongs() {
         return null;
     }
+
     @Override
     public ArrayList<music> showsongsbygenre(String genero) {
         return null;
     }
+
     @Override
-    public ArrayList<music> showsongsbyalbum(album album){
+    public ArrayList<music> showsongsbyalbum(album album) {
         return null;
     }
+
     //#5
     @Override
     public boolean writecomment(album album, user user, int points, String comment) {
         return false;
     }
+
     //#6
     @Override
     public boolean giverights(user user) {
         return false;
     }
+
     //#11
     @Override
     public boolean partilha(music musica, user user) {

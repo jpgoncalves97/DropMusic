@@ -2,7 +2,7 @@ package Classes;
 
 import java.util.ArrayList;
 
-public class author{
+public class author {
 
     private ArrayList<music> singles;
     private ArrayList<album> albuns;
