@@ -14,7 +14,7 @@ public interface rmi_interface_client extends Remote {
     boolean test(int n) throws RemoteException;//0=false
 
     //#1
-    boolean regUser(int permissions, String username, String password, String nome, int phone_num, String address, String num_cc) throws RemoteException;
+    boolean regUser(user newuser) throws RemoteException;
     boolean usertest(int cc) throws RemoteException;
     user login(String username,String password) throws RemoteException;
     //#2 gerir artistas, albuns e musicas

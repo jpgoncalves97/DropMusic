@@ -3,6 +3,8 @@ package sd;
 
 import Classes.*;
 
+import java.io.*;
+import java.net.*;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
@@ -47,6 +49,10 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         } catch (RemoteException e) {
             System.out.print("Exception in RMI Server.main: " + e);
         }
+
+        MulticastSocket socket = MulticastServer.newMulticastSocket();
+        MulticastServer.newReceiverThread(socket);
+        MulticastServer.newSenderThread(socket);
     }
 
     public boolean test(int n) throws RemoteException {
@@ -54,13 +60,23 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
     //#1
-    @Override
-    public boolean regUser(int permissions, String username, String password, String nome, int phone_num, String address, String num_cc) {
+    public boolean usertest(int cc) {
         return true;
     }
 
-    public boolean usertest(int cc) {
-        return true;
+    @Override
+    public boolean regUser(user newuser) {
+        return false;
+    }
+
+    @Override
+    public user login(String username, String password) {
+        return null;
+    }
+
+    @Override
+    public void online(user user, rmi_interface_client c) {
+
     }
 
     //#3 & 4

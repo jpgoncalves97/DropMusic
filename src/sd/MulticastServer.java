@@ -1,7 +1,6 @@
 package sd;
 
 import Classes.*;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 
 import java.io.*;
 import java.net.*;
@@ -140,7 +139,7 @@ class MulticastServer extends Thread {
         return socket;
     }
 
-    public void newReceiverThread(MulticastSocket socket) {
+    public static void newReceiverThread(MulticastSocket socket) {
         new MulticastReceiverThread(socket, new Runnable() {
             public void run() {
                 while (true) {
@@ -160,7 +159,7 @@ class MulticastServer extends Thread {
         }).start();
     }
 
-    public void newSenderThread(MulticastSocket socket) {
+    public static void newSenderThread(MulticastSocket socket) {
         new MulticastSenderThread(socket, new Runnable() {
             public void run() {
                 InetAddress group;
