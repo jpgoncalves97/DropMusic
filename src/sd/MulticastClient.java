@@ -1,14 +1,13 @@
 package sd;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.Socket;
+import java.util.Scanner;
 
 class MulticastClient extends Thread {
-
-    private static String MULTICAST_ADDRESS = "224.0.224.0";
-    private static int PORT = 4321;
 
     public static void main(String[] args) {
         MulticastClient client = new MulticastClient();
@@ -16,26 +15,33 @@ class MulticastClient extends Thread {
     }
 
     public void run() {
-        MulticastSocket socket = null;
-        try {
-            socket = new MulticastSocket(PORT);  // create socket and bind it
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
-            socket.joinGroup(group);
-            while (true) {
-                byte[] buffer = new byte[256];
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                socket.receive(packet);
-
-                synchronized (System.out) {
-                    System.out.println("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
-                    String message = new String(packet.getData(), 0, packet.getLength());
-                    System.out.println(message);
+        while (true) {
+            try {
+                Socket socket = new Socket("127.0.0.1", MulticastServer.TCP_PORT);
+                InputStream in = socket.getInputStream();
+                OutputStream out = socket.getOutputStream();
+                Scanner sc = new Scanner(System.in);
+                String text;
+                while (true) {
+                    System.out.print("Nome do ficheiro: ");
+                    text = sc.nextLine();
+                    out.write(text.getBytes());
+                    // Se in.read == 1 encontrou ficheiro
+                    if (in.read() == 1){
+                        break;
+                    }
+                    System.out.println("File " + text + " not found");
                 }
+                OutputStream fout = new FileOutputStream(text, true);
+                byte[] buffer = new byte[1024];
+                while (in.read(buffer) != -1) {
+                    fout.write(buffer);
+                }
+                socket.close();
+
+            } catch (IOException e) {
+                System.out.println(e);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            socket.close();
         }
     }
 }
