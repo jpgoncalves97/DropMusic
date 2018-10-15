@@ -8,7 +8,7 @@ public class author {
     private ArrayList<album> albuns;
 
     public author(String username, String password, String nome, int phone_num, String address, String num_cc){
-        super(username,password,nome,phone_num,address,num_cc);
+        //super(username,password,nome,phone_num,address,num_cc);
         this.singles = new ArrayList<>();
         this.albuns = new ArrayList<>();
     }
