@@ -1,62 +1,70 @@
 package sd;
 
-import Classes.*;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.Random;
 import java.util.Scanner;
-
-import static java.net.NetworkInterface.getNetworkInterfaces;
+import java.util.concurrent.ThreadLocalRandom;
 
 class MulticastServer extends Thread {
 
     protected static String MULTICAST_ADDRESS = "224.0.224.0";
     protected static int PORT = 4321;
     protected static int TCP_PORT = 1234;
-    protected long id;
+    protected String id;
     private ArrayList<File> musicas;
+    private String musicFilePath;
 
     public MulticastServer() {
         super();
-        id = System.currentTimeMillis();
+        //id = System.currentTimeMillis();
+        id = Long.toString(ThreadLocalRandom.current().nextInt(0, 99));
         System.out.println("Server id# " + id);
-        File[] temp = new File("C:/Users/j/Desktop/musica").listFiles();
+        /*musicFilePath = "C:/Users/j/Desktop/musica_server";
+        File[] temp = new File(musicFilePath).listFiles();
         System.out.println("Musicas");
         if (temp == null){
             musicas = new ArrayList<>();
         } else {
             musicas = new ArrayList<>(Arrays.asList(temp));
-            for (File file : musicas) {
-                if (file.isFile()) {
-                    System.out.println(file.getName());
-                }
+            listMusic();
+        }
+        TCPHandler(TCP_PORT);*/
+        MulticastSocket socket = newMulticastSocket();
+        SharedMessage msg = new SharedMessage();
+        newReceiverThread(socket, msg);
+        newSenderThread(socket, msg);
+        while (true) {
+            Scanner sc = new Scanner(System.in);
+            String m = sc.nextLine();
+            synchronized (msg){
+                msg.setMsg(m);
+                msg.notify();
             }
         }
-        TCPHandler();
-        /*MulticastSocket socket = newMulticastSocket();
-        newReceiverThread(socket);
-        newSenderThread(socket);*/
     }
 
-    public void newFileSender(Socket socket) {
-
-    }
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         new MulticastServer();
+
     }
 
-    public void TCPHandler() {
+    /*public static void newMulticastConnection(Runnable rcv, Runnable snd) {
+        MulticastSocket socket = newMulticastSocket();
+        SharedMessage msg = new SharedMessage();
+        new MulticastReceiverThread(socket, msg, rcv).start();
+        new MulticastSenderThread(socket, msg, snd).start();
+    }*/
+
+    public void TCPHandler(int port) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ServerSocket serverSocket;
                 try {
-                    serverSocket = new ServerSocket(TCP_PORT);
+                    serverSocket = new ServerSocket(port);
                 } catch (IOException e) {
                     System.out.println("Failed to open TCP Server socket\n" + e);
                     return;
@@ -73,16 +81,29 @@ class MulticastServer extends Thread {
         }).start();
     }
 
+    public void listMusic() {
+        for (File file : musicas) {
+            if (file.isFile()) {
+                System.out.println(file.getName());
+            }
+        }
+    }
+
     public void TCPThread(Socket clientSocket) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     InputStream in = clientSocket.getInputStream();
-                    OutputStream output = clientSocket.getOutputStream();
+                    OutputStream out = clientSocket.getOutputStream();
                     // Upload
-                    if (in.read() == 0){
-
+                    int r = in.read();
+                    System.out.println(r);
+                    if (r == 0) {
+                        byte[] music = new byte[1024];
+                        int read = in.read(music);
+                        String nome_musica = new String(music, 0, read);
+                        TCP.downloadFile(musicFilePath, musicas, nome_musica, in);
                     }
                     // Download
                     else {
@@ -95,29 +116,22 @@ class MulticastServer extends Thread {
                             for (i = 0; i < musicas.size(); i++) {
                                 if (musicas.get(i).getName().equals(nome_musica)) {
                                     System.out.println("Ficheiro encontrado");
-                                    output.write(1);
+                                    out.write(1);
                                     break;
                                 }
                             }
                             if (i == musicas.size()) {
                                 System.out.println("Ficheiro não encontrado");
-                                output.write(0);
+                                out.write(0);
                             } else {
                                 break;
                             }
                         }
                         System.out.println("Sending " + musicas.get(i).length() + " bytes");
                         // Writing the file to disk
-                        // Instantiating a new output stream object
+                        // Instantiating a new out stream object
+                        TCP.uploadFile(musicas.get(i), out);
 
-                        FileInputStream fin = new FileInputStream(musicas.get(i));
-                        int bytesRead;
-                        byte[] buffer = new byte[1024];
-                        while ((bytesRead = fin.read(buffer)) != -1) {
-                            output.write(buffer, 0, bytesRead);
-                        }
-                        // Closing the FileOutputStream handle
-                        output.close();
                     }
                     clientSocket.close();
 
@@ -131,26 +145,58 @@ class MulticastServer extends Thread {
     public static MulticastSocket newMulticastSocket() {
         MulticastSocket socket = null;
         try {
-            socket = new MulticastSocket(PORT);  // create socket and bind it
+            socket = new MulticastSocket(PORT);
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             socket.joinGroup(group);
         } catch (IOException e) {
-            System.out.println("Error creating socket");
+
         }
         return socket;
     }
 
-    public void newReceiverThread(MulticastSocket socket) {
-        new MulticastReceiverThread(socket, new Runnable() {
+    public String decodeMessage(String[] msg) {
+        if (msg[0].equals(id)){
+            System.out.println("Message from same server");
+            return msg[0];
+        }
+        /*switch (msg[0]) {
+            case "request":
+                switch (msg[1]) {
+                    case "server_id":
+                        return "response;server_id;" + Long.toString(id);
+                }
+                break;
+        }
+        return "";*/
+        String ret = id + ";response";
+        for (int i = 1; i < msg.length; i++){
+            ret += msg[i];
+        }
+        return ret;
+    }
+
+    public void newReceiverThread(MulticastSocket socket, SharedMessage msg) {
+        new MulticastReceiverThread(socket, msg, new Runnable() {
             public void run() {
                 while (true) {
                     try {
                         byte[] buffer = new byte[1024];
                         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                        socket.receive(packet);
-                        String[] msg = new String(packet.getData(), packet.getOffset(), packet.getLength()).split(";");
-                        for (String s : msg) {
-                            System.out.println(s);
+                        String request;
+                        // Ignore response packets
+                        //do {
+                            socket.receive(packet);
+                            request = new String(packet.getData(), packet.getOffset(), packet.getLength());
+
+                        //} while (request.contains("response"));
+
+                        String response = decodeMessage(new String(packet.getData(), packet.getOffset(), packet.getLength()).split(";"));
+                        if (!response.startsWith(id)) {
+                            System.out.println("Received: " + request);
+                            synchronized (msg) {
+                                msg.setMsg(response);
+                                msg.notify();
+                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -160,17 +206,31 @@ class MulticastServer extends Thread {
         }).start();
     }
 
-    public void newSenderThread(MulticastSocket socket) {
-        new MulticastSenderThread(socket, new Runnable() {
+    public void newSenderThread(MulticastSocket socket, SharedMessage msg) {
+        new MulticastSenderThread(socket, msg, new Runnable() {
             public void run() {
                 InetAddress group;
                 try {
                     group = InetAddress.getByName(MulticastServer.MULTICAST_ADDRESS);
                     while (true) {
+                        String m;
                         try {
-                            byte[] buffer = new byte[1024];
+                            byte[] buffer;
+                            synchronized (msg) {
+                                if (msg.isNull()) {
+                                    try {
+                                        msg.wait();
+                                    } catch (InterruptedException e) {
+                                        System.out.println("Thread interrompida: " + e);
+                                    }
+                                }
+                                m = id + ";" + msg.getMsg();
+                                buffer = m.getBytes();
+                            }
                             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MulticastServer.PORT);
                             socket.send(packet);
+                            System.out.println("Sending response: " + m);
+
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -188,9 +248,11 @@ class MulticastServer extends Thread {
 class MulticastReceiverThread extends Thread {
 
     private MulticastSocket socket;
+    private SharedMessage msg;
 
-    MulticastReceiverThread(MulticastSocket socket, Runnable runnable) {
+    MulticastReceiverThread(MulticastSocket socket, SharedMessage msg, Runnable runnable) {
         super(runnable);
+        this.msg = msg;
         this.socket = socket;
     }
 
@@ -199,11 +261,46 @@ class MulticastReceiverThread extends Thread {
 class MulticastSenderThread extends Thread {
 
     private MulticastSocket socket;
+    private SharedMessage msg;
 
-    MulticastSenderThread(MulticastSocket socket, Runnable runnable) {
+    MulticastSenderThread(MulticastSocket socket, SharedMessage msg, Runnable runnable) {
         super(runnable);
+        this.msg = msg;
         this.socket = socket;
     }
 
 }
 
+class SharedMessage {
+
+    private ArrayList<String> msgList;
+
+    SharedMessage() {
+        msgList = new ArrayList<>();
+    }
+
+    public void print(){
+        System.out.println("Message list");
+        for (int i = 0; i < msgList.size(); i++){
+            System.out.println(msgList.get(i));
+        }
+    }
+
+    public void setMsg(String msg) {
+        msgList.add(msg);
+    }
+
+    public boolean isNull() {
+        return msgList.isEmpty();
+    }
+
+    public String getMsg() {
+
+        if (msgList.isEmpty()) return null;
+        else {
+            String s = msgList.get(0);
+            msgList.remove(0);
+            return s;
+        }
+    }
+}
