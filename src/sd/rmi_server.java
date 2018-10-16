@@ -5,6 +5,7 @@ import Classes.*;
 
 import java.io.*;
 import java.net.*;
+import java.net.UnknownHostException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
@@ -25,6 +26,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,8 +53,44 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }
 
         MulticastSocket socket = MulticastServer.newMulticastSocket();
-        MulticastServer.newReceiverThread(socket);
-        MulticastServer.newSenderThread(socket);
+        SharedMessage msg = new SharedMessage();
+        new MulticastSenderThread(socket, msg, new Runnable() {
+            public void run() {
+                /*Scanner sc = new Scanner(System.in);
+                InetAddress group;
+                try {
+                    group = InetAddress.getByName(MulticastServer.MULTICAST_ADDRESS);
+                    while (true) {
+                        System.out.println("[1] Registar ");
+                        System.out.println("Escolha uma opção: ");
+                        String m;
+                        try {
+                            byte[] buffer;
+                            synchronized (msg) {
+                                if (msg.isNull()) {
+                                    try {
+                                        msg.wait();
+                                    } catch (InterruptedException e) {
+                                        System.out.println("Thread interrompida: " + e);
+                                    }
+                                }
+                                m = id + ";" + msg.getMsg();
+                                buffer = m.getBytes();
+                            }
+                            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MulticastServer.PORT);
+                            socket.send(packet);
+                            System.out.println("Sending response: " + m);
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }*/
+
+            }
+        }).start();
     }
 
     public boolean test(int n) throws RemoteException {
