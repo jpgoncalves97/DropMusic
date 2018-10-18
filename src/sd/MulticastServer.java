@@ -1,11 +1,10 @@
 package sd;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 class MulticastServer extends Thread {
@@ -13,6 +12,7 @@ class MulticastServer extends Thread {
     protected static String MULTICAST_ADDRESS = "224.0.224.0";
     protected static int PORT = 4321;
     protected static int TCP_PORT = 1234;
+    protected static InetAddress group;
     protected String id;
     private ArrayList<File> musicas;
     private String musicFilePath;
@@ -32,31 +32,20 @@ class MulticastServer extends Thread {
             listMusic();
         }
         TCPHandler(TCP_PORT);*/
+        try {
+            group = InetAddress.getByName(MULTICAST_ADDRESS);
+        } catch (UnknownHostException e) {
+            System.out.println(e);
+        }
         MulticastSocket socket = newMulticastSocket();
         SharedMessage msg = new SharedMessage();
         newReceiverThread(socket, msg);
         newSenderThread(socket, msg);
-        while (true) {
-            Scanner sc = new Scanner(System.in);
-            String m = sc.nextLine();
-            synchronized (msg){
-                msg.setMsg(m);
-                msg.notify();
-            }
-        }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         new MulticastServer();
-
     }
-
-    /*public static void newMulticastConnection(Runnable rcv, Runnable snd) {
-        MulticastSocket socket = newMulticastSocket();
-        SharedMessage msg = new SharedMessage();
-        new MulticastReceiverThread(socket, msg, rcv).start();
-        new MulticastSenderThread(socket, msg, snd).start();
-    }*/
 
     public void TCPHandler(int port) {
         new Thread(new Runnable() {
@@ -155,24 +144,38 @@ class MulticastServer extends Thread {
     }
 
     public String decodeMessage(String[] msg) {
-        if (msg[0].equals(id)){
-            System.out.println("Message from same server");
-            return msg[0];
-        }
-        /*switch (msg[0]) {
-            case "request":
-                switch (msg[1]) {
+        if (msg[0].equals(id) || msg[0].equals("0")) {
+            if (msg[1].equals("request")) {
+                switch (msg[2]) {
                     case "server_id":
-                        return "response;server_id;" + Long.toString(id);
+                        return "response;server_id;" + id;
+                    case "echo":
+                        return "response;echo;" + msg[3];
+                    default:
+                        return "ign";
                 }
-                break;
+            } else {
+                return "ign";
+            }
         }
-        return "";*/
-        String ret = id + ";response";
-        for (int i = 1; i < msg.length; i++){
-            ret += msg[i];
-        }
-        return ret;
+        return "ign";
+    }
+
+    public static void sendString(MulticastSocket socket, String msg) throws IOException {
+        byte[] buffer = msg.getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(MULTICAST_ADDRESS), MulticastServer.PORT);
+        socket.send(packet);
+    }
+
+    public static String receiveString(MulticastSocket socket) throws IOException {
+        byte[] buffer = new byte[1024];
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        socket.receive(packet);
+        return packetToString(packet);
+    }
+
+    public static String packetToString(DatagramPacket d) {
+        return new String(d.getData(), d.getOffset(), d.getLength());
     }
 
     public void newReceiverThread(MulticastSocket socket, SharedMessage msg) {
@@ -180,18 +183,13 @@ class MulticastServer extends Thread {
             public void run() {
                 while (true) {
                     try {
-                        byte[] buffer = new byte[1024];
-                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                         String request;
                         // Ignore response packets
-                        //do {
-                            socket.receive(packet);
-                            request = new String(packet.getData(), packet.getOffset(), packet.getLength());
-
-                        //} while (request.contains("response"));
-
-                        String response = decodeMessage(new String(packet.getData(), packet.getOffset(), packet.getLength()).split(";"));
-                        if (!response.startsWith(id)) {
+                        do {
+                            request = receiveString(socket);
+                        } while (request.contains("response"));
+                        String response = decodeMessage(request.split(";"));
+                        if (!response.equals("ign")) {
                             System.out.println("Received: " + request);
                             synchronized (msg) {
                                 msg.setMsg(response);
@@ -209,36 +207,30 @@ class MulticastServer extends Thread {
     public void newSenderThread(MulticastSocket socket, SharedMessage msg) {
         new MulticastSenderThread(socket, msg, new Runnable() {
             public void run() {
-                InetAddress group;
-                try {
-                    group = InetAddress.getByName(MulticastServer.MULTICAST_ADDRESS);
-                    while (true) {
-                        String m;
-                        try {
-                            byte[] buffer;
-                            synchronized (msg) {
-                                if (msg.isNull()) {
-                                    try {
-                                        msg.wait();
-                                    } catch (InterruptedException e) {
-                                        System.out.println("Thread interrompida: " + e);
-                                    }
+
+                while (true) {
+                    String m;
+                    try {
+                        byte[] buffer;
+                        synchronized (msg) {
+                            if (msg.isNull()) {
+                                try {
+                                    msg.wait();
+                                } catch (InterruptedException e) {
+                                    System.out.println("Thread interrompida: " + e);
                                 }
-                                m = id + ";" + msg.getMsg();
-                                buffer = m.getBytes();
                             }
-                            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MulticastServer.PORT);
-                            socket.send(packet);
-                            System.out.println("Sending response: " + m);
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            m = id + ";" + msg.getMsg();
+                            buffer = m.getBytes();
                         }
-                    }
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                }
+                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MulticastServer.PORT);
+                        socket.send(packet);
+                        System.out.println("Sending response: " + m);
 
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }).start();
     }
@@ -279,9 +271,9 @@ class SharedMessage {
         msgList = new ArrayList<>();
     }
 
-    public void print(){
+    public void print() {
         System.out.println("Message list");
-        for (int i = 0; i < msgList.size(); i++){
+        for (int i = 0; i < msgList.size(); i++) {
             System.out.println(msgList.get(i));
         }
     }
