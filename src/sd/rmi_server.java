@@ -2,7 +2,9 @@ package sd;
 
 
 import Classes.*;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 
+import javax.sound.midi.SysexMessage;
 import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.*;
@@ -33,9 +35,33 @@ import java.util.logging.Logger;
 
 public class rmi_server extends UnicastRemoteObject implements rmi_interface_client {
     private int test_var;
+    private MulticastSocket socket;
 
     private rmi_server() throws RemoteException, ParseException {
         test_var = 0;
+        socket = MulticastServer.newMulticastSocket();
+        SharedMessage msg = new SharedMessage();
+        new MulticastSenderThread(socket, msg, new Runnable() {
+            public void run() {
+                try {
+                    Scanner sc = new Scanner(System.in);
+                    while (true) {
+
+                        System.out.print("Message: ");
+                        // Choose one server id
+                        String input = sc.nextLine();
+                        ArrayList<String> ids = getServerIds();
+                        String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
+                        System.out.println("Sending to id: " + id);
+                        MulticastServer.sendString(socket, new String(id + ";request;echo" + input));
+                        System.out.println("Received: " + MulticastServer.receiveString(socket));
+                    }
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+        }).start();
+
     }
 
     public static void main(String args[]) throws ParseException {
@@ -51,63 +77,35 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             System.out.print("Exception in RMI Server.main: " + e);
         }
 
-        MulticastSocket socket = MulticastServer.newMulticastSocket();
-        SharedMessage msg = new SharedMessage();
-        new MulticastSenderThread(socket, msg, new Runnable() {
-            public void run() {
-                try {
-                    Scanner sc = new Scanner(System.in);
-                    InetAddress group;
-                    group = InetAddress.getByName(MulticastServer.MULTICAST_ADDRESS);
-                    while (true) {
 
-                        System.out.print("Message: ");
-                        // Choose one server id
-                        String input = sc.nextLine();
-                        String msg = "0;request;server_id";
-                        {
-                            byte[] buffer = msg.getBytes();
-                            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MulticastServer.PORT);
-                            socket.send(packet);
-                        }
-                        socket.setSoTimeout(100);
-                        byte[] buffer = new byte[1024];
-                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                        ArrayList<String> ids = new ArrayList<>();
-                        while (true) {
-                            try {
-                                socket.receive(packet);
-                                if (MulticastServer.packetToString(packet).contains("response")) {
-                                    System.out.println("Id recebido: " + MulticastServer.packetToString(packet).split(";")[0]);
-                                    ids.add(MulticastServer.packetToString(packet).split(";")[0]);
-                                }
-                            } catch (SocketTimeoutException e) {
-                                break;
-                            }
-                        }
-                        System.out.println("Id list");
-                        for (int i = 0; i < ids.size(); i++){
-                            System.out.println(ids.get(i));
-                        }
-                        {
-                            String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
-                            System.out.println("Sending to id: " + id);
-                            byte[] buffer1 = new String(id + ";request;echo" + input).getBytes();
-                            DatagramPacket packet1 = new DatagramPacket(buffer1, buffer1.length, group, MulticastServer.PORT);
-                            socket.send(packet1);
-                            System.out.println("Sent packet");
-                        }
-                        byte[] buf = new byte[1024];
-                        DatagramPacket p = new DatagramPacket(buf, buf.length, group, MulticastServer.PORT);
-                        socket.receive(p);
-                        System.out.println("Received: " + MulticastServer.packetToString(p));
-                        ids = new ArrayList<>();
-                    }
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
+    }
+
+    public ArrayList getServerIds() {
+        try {
+            MulticastServer.sendString(socket, new String("0;request;server_id"));
+        } catch (IOException e){
+            System.out.println(e);
+        }
+
+        ArrayList<String> ids = new ArrayList<>();
+        try {
+            socket.setSoTimeout(100);
+        } catch (SocketException e) {
+            System.out.println(e);
+        }
+        while (true) {
+            String response;
+            try {
+                response = MulticastServer.receiveString(socket);
+            } catch (IOException e){
+                return ids;
             }
-        }).start();
+            if (response.contains("response")) {
+                String id = response.split(";")[0];
+                System.out.println("Id recebido: " + id);
+                ids.add(id);
+            }
+        }
     }
 
     public boolean test(int n) throws RemoteException {
