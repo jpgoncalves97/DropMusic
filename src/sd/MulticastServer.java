@@ -17,6 +17,7 @@ class MulticastServer extends Thread {
     protected String id;
     private final String path = "C:/Users/j/Desktop/multicast/";
     private final String userPath = path + "users";
+    private File f = new File(userPath);
     private HashMap<String, user> users;
     private ArrayList<File> musicas;
     private String musicFilePath;
@@ -46,7 +47,11 @@ class MulticastServer extends Thread {
         newReceiverThread(socket, msg);
         newSenderThread(socket, msg);
 
-        users = readUserFile();
+        users = new HashMap<>(100);
+        readUserFile();
+        for (String key: users.keySet()){
+            System.out.println(users.get(key).getUsername());
+        }
         //user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc)
         /*user u[] = new user[]{new user(false, 10, "a", "x", "nome", 123, "ad", 23),
                 new user(false, 10, "an", "x", "nome", 123, "ad", 24),
@@ -64,40 +69,36 @@ class MulticastServer extends Thread {
         new MulticastServer();
     }
 
-    public HashMap<String, user> readUserFile() {
-        HashMap<String, user> users = new HashMap<>(100);
-        ObjectInputStream ois;
-        try {
-            ois = new ObjectInputStream(new FileInputStream(path + "users"));
-        } catch (Exception e) {
-            System.out.println(e);
-            return null;
-        }
-        while (true) {
+    public void readUserFile() {
+        if (!f.exists()){
             try {
-                user u = (user) ois.readObject();
-                System.out.println(u.getUsername());
-                users.put(u.getUsername(), u);
-            } catch (EOFException e) {
-                try {
-                    ois.close();
-                } catch (IOException e1){
-                    System.out.println(e1);
-                }
-                return users;
-            } catch (IOException e) {
+                f.createNewFile();
+            } catch (IOException e){
                 System.out.println(e);
-                return null;
-            } catch (ClassNotFoundException e) {
-                System.out.println(e);
-                return null;
             }
+            registerUser(new user(true, 0, "admin", "admin", "admin", 0, "", 0));
+            return;
         }
+        try {
+            FileInputStream fis = new FileInputStream(f);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            users = (HashMap<String, user>) ois.readObject();
+            fis.close();
+            ois.close();
+        } catch (EOFException e) {
+            System.out.println("eof");
+            return;
+        } catch (IOException e) {
+            System.out.println("93: " + e);
+            return;
+        } catch (ClassNotFoundException e) {
+            System.out.println("96 " + e);
+            return;
+        }
+
     }
 
-
-
-    public boolean registerUser(user u){
+    public boolean registerUser(user u) {
         // Check if user pode ser registado(parametros validos)
         if (users.containsKey(u.getUsername())) {
             System.out.println("Username " + u.getUsername() + " já existe");
@@ -105,12 +106,15 @@ class MulticastServer extends Thread {
         }
         users.put(u.getUsername(), u);
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(userPath));
-            oos.writeObject(u);
-        } catch (FileNotFoundException e){
-
-        } catch (IOException e){
-
+            FileOutputStream fos = new FileOutputStream(f);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(users);
+            fos.close();
+            oos.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("register: " + e);
+        } catch (IOException e) {
+            System.out.println("register: " + e);
         }
         return true;
     }
@@ -212,6 +216,7 @@ class MulticastServer extends Thread {
     }
 
     public String decodeMessage(String[] msg) {
+
         if (msg[0].equals(id) || msg[0].equals("0")) {
             if (msg[1].equals("request")) {
                 switch (msg[2]) {
@@ -224,10 +229,10 @@ class MulticastServer extends Thread {
                     case "login":
                         System.out.println("Login request");
                         user u1 = users.get(msg[3]);
-                        if (u1 == null){
+                        if (u1 == null) {
                             return "response;login;false;bad_username";
                         }
-                        if (!u1.getPassword().equals(msg[4])){
+                        if (!u1.getPassword().equals(msg[4])) {
                             return "response;login;false;bad_password";
                         }
                         return "response;login;true;" + (u1.isEditor() ? "true" : "false");
