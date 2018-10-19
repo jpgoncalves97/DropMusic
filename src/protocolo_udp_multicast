@@ -8,3 +8,5 @@ response;register;bool sucesso
 
 request;login;String username; String password;
 response;login;bool sucesso;bool editor(sucesso = true) ou String error_msg(sucesso = false)
+
+.
