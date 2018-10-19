@@ -43,22 +43,27 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         SharedMessage msg = new SharedMessage();
         new MulticastSenderThread(socket, msg, new Runnable() {
             public void run() {
-                try {
-                    Scanner sc = new Scanner(System.in);
-                    while (true) {
+                Scanner sc = new Scanner(System.in);
+                while (true) {
 
+                    try {
                         System.out.print("Message: ");
                         // Choose one server id
                         String input = sc.nextLine();
                         ArrayList<String> ids = getServerIds();
                         String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
                         System.out.println("Sending to id: " + id);
-                        MulticastServer.sendString(socket, new String(id + ";request;echo" + input));
-                        System.out.println("Received: " + MulticastServer.receiveString(socket));
+                        MulticastServer.sendString(socket, new String(id + ";" + input));
+                        String response;
+                        do {
+                            response = MulticastServer.receiveString(socket);
+                        } while (response.contains("request"));
+                        System.out.println("Received: " + response);
+                    } catch (Exception e) {
+                        System.out.println(e);
                     }
-                } catch (Exception e) {
-                    System.out.println(e);
                 }
+
             }
         }).start();
 
@@ -83,7 +88,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     public ArrayList getServerIds() {
         try {
             MulticastServer.sendString(socket, new String("0;request;server_id"));
-        } catch (IOException e){
+        } catch (IOException e) {
             System.out.println(e);
         }
 
@@ -97,7 +102,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             String response;
             try {
                 response = MulticastServer.receiveString(socket);
-            } catch (IOException e){
+            } catch (IOException e) {
                 return ids;
             }
             if (response.contains("response")) {

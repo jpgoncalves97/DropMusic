@@ -1,5 +1,6 @@
 package sd;
 
+import Classes.user;
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 
 import java.io.*;
@@ -14,6 +15,9 @@ class MulticastServer extends Thread {
     protected static int TCP_PORT = 1234;
     protected static InetAddress group;
     protected String id;
+    private final String path = "C:/Users/j/Desktop/multicast/";
+    private final String userPath = path + "users";
+    private HashMap<String, user> users;
     private ArrayList<File> musicas;
     private String musicFilePath;
 
@@ -41,10 +45,74 @@ class MulticastServer extends Thread {
         SharedMessage msg = new SharedMessage();
         newReceiverThread(socket, msg);
         newSenderThread(socket, msg);
+
+        users = readUserFile();
+        //user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc)
+        /*user u[] = new user[]{new user(false, 10, "a", "x", "nome", 123, "ad", 23),
+                new user(false, 10, "an", "x", "nome", 123, "ad", 24),
+                new user(false, 10, "aa", "x", "nome", 123, "ad", 25)};
+
+        registerUser(u[0]);
+        registerUser(u[1]);
+        registerUser(u[2]);
+        for (user u1 : users.values()){
+            System.out.println(users.get(u1.getUsername()).getNum_cc());
+        }*/
     }
 
     public static void main(String[] args) throws Exception {
         new MulticastServer();
+    }
+
+    public HashMap<String, user> readUserFile() {
+        HashMap<String, user> users = new HashMap<>(100);
+        ObjectInputStream ois;
+        try {
+            ois = new ObjectInputStream(new FileInputStream(path + "users"));
+        } catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
+        while (true) {
+            try {
+                user u = (user) ois.readObject();
+                System.out.println(u.getUsername());
+                users.put(u.getUsername(), u);
+            } catch (EOFException e) {
+                try {
+                    ois.close();
+                } catch (IOException e1){
+                    System.out.println(e1);
+                }
+                return users;
+            } catch (IOException e) {
+                System.out.println(e);
+                return null;
+            } catch (ClassNotFoundException e) {
+                System.out.println(e);
+                return null;
+            }
+        }
+    }
+
+
+
+    public boolean registerUser(user u){
+        // Check if user pode ser registado(parametros validos)
+        if (users.containsKey(u.getUsername())) {
+            System.out.println("Username " + u.getUsername() + " já existe");
+            return false;
+        }
+        users.put(u.getUsername(), u);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(userPath));
+            oos.writeObject(u);
+        } catch (FileNotFoundException e){
+
+        } catch (IOException e){
+
+        }
+        return true;
     }
 
     public void TCPHandler(int port) {
@@ -149,8 +217,20 @@ class MulticastServer extends Thread {
                 switch (msg[2]) {
                     case "server_id":
                         return "response;server_id;" + id;
-                    case "echo":
-                        return "response;echo;" + msg[3];
+                    case "register":
+                        //user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc)
+                        user u = new user(false, Integer.parseInt(msg[3]), msg[4], msg[5], msg[6], Integer.parseInt(msg[7]), msg[8], Integer.parseInt(msg[9]));
+                        return registerUser(u) ? "response;register;true" : "response;register;false";
+                    case "login":
+                        System.out.println("Login request");
+                        user u1 = users.get(msg[3]);
+                        if (u1 == null){
+                            return "response;login;false;bad_username";
+                        }
+                        if (!u1.getPassword().equals(msg[4])){
+                            return "response;login;false;bad_password";
+                        }
+                        return "response;login;true;" + (u1.isEditor() ? "true" : "false");
                     default:
                         return "ign";
                 }
