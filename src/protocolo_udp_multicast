@@ -7,12 +7,10 @@ response;server_id;id
 request;register;int idade; String username; String password; String nome; int phone_num; String address; int num_cc
 response;register;bool sucesso
 request;login;String username; String password;
-response;login;bool sucesso;bool editor(sucesso = true) ou String error_msg(sucesso = false)
+response;login;bool sucesso;bool editor(sucesso = true);
 
 #2 Gerir artistas, álbuns e músicas
-request;edit;remove;nome(album/author/music);detalhe a remover
-request;edit;change;nome(album/author/music);detalhe a alterar;alteracao
-request;edit;insert;nome(album/author/music);detalhe a inserir;alteracao
+request;edit;(album/author/music);nome(album/author/music);campo alterado; alteracao
 
 #3 Pesquisar músicas
 request;music_search;artista/genero_musical/album;String informacao
