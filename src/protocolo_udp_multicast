@@ -6,6 +6,7 @@ response;server_id;id
 #1 Registar pessoas
 request;register;int idade; String username; String password; String nome; int phone_num; String address; int num_cc
 response;register;bool sucesso
+
 request;login;String username; String password;
 response;login;bool sucesso;bool editor(sucesso = true);
 
@@ -13,7 +14,7 @@ response;login;bool sucesso;bool editor(sucesso = true);
 request;edit;(album/author/music);nome(album/author/music);campo alterado; alteracao
 
 #3 Pesquisar músicas
-request;music_search;artista/genero_musical/album;String informacao
+request;music_search;username;artista/genero_musical/album;String informacao;
 response;music_search;int item_count;String[item_count] nome_musicas
 
 #4 Consultar detalhes sobre álbum e sobre artista

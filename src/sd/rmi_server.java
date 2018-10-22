@@ -127,6 +127,16 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
     @Override
+    public void unsubscribe(String user) throws RemoteException{
+        int index = usernames.indexOf(user);
+        System.out.println("o client "+user+"desligou-se");
+        if(index != -1) {
+            clientes.remove(index);
+            usernames.remove(index);
+        }
+    }
+
+    @Override
     public void subscribe(String username, client_interface c) throws RemoteException{
         System.out.println("new client");
         this.clientes.add(c);
