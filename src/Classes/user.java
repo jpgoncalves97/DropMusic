@@ -98,6 +98,10 @@ public class user implements Serializable{
     public void setUsername(String username) {
         this.username = username;
     }
+    public String pacote_String(){
+        //int idade; String username; String password; String nome; int phone_num; String address; int num_cc
+        return Integer.toString(idade) + ";" + username + ";" + password + ";" + nome + ";" + Integer.toString(phone_num) + ";" + address + ";" + Integer.toString(num_cc);
+    }
     @Override
     public String toString() {
         return "Username: " + nome + "\nEditor: " + (isEditor() ? "true" : "false") + "\n";

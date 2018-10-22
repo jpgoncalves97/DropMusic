@@ -2,7 +2,6 @@ package sd;
 
 
 import Classes.*;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 
 import javax.sound.midi.SysexMessage;
 import javax.xml.crypto.Data;
@@ -36,6 +35,8 @@ import java.util.logging.Logger;
 public class rmi_server extends UnicastRemoteObject implements rmi_interface_client {
     private int test_var;
     private MulticastSocket socket;
+    private ArrayList<client_interface> clientes = new ArrayList<>();
+    private ArrayList<String> usernames = new ArrayList<>();
 
     private rmi_server() throws RemoteException, ParseException {
         test_var = 0;
@@ -45,7 +46,6 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             public void run() {
                 Scanner sc = new Scanner(System.in);
                 while (true) {
-
                     try {
                         System.out.print("Message: ");
                         // Choose one server id
@@ -65,7 +65,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                 }
 
             }
-        }).start();
+        });
 
     }
 
@@ -113,78 +113,168 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }
     }
 
-    public boolean test(int n) throws RemoteException {
-        return n != 0;
-    }
+    public boolean test(String username) throws RemoteException {
 
-    //#1
-    public boolean usertest(int cc) {
+        System.out.println("testing notify");
+        try{
+            int index = usernames.indexOf(username);
+            System.out.println(index);
+            clientes.get(usernames.indexOf(username)).notify_client("notify test to " + username);
+        }catch (Exception e) {
+            System.out.println("Exception in main: " + e);
+        }
         return true;
     }
 
     @Override
-    public boolean regUser(user newuser) {
-        return false;
+    public void subscribe(String username, client_interface c) throws RemoteException{
+        System.out.println("new client");
+        this.clientes.add(c);
+        this.usernames.add(username);
+    }
+
+    //#1
+    @Override
+    public boolean send_all_return_bool(String newuser) {
+
+        SharedMessage msg = new SharedMessage();
+        new MulticastSenderThread(socket, msg, new Runnable() {
+            public void run() {
+                try {
+                    System.out.println("Sending to all");
+                    MulticastServer.sendString(socket, "0;request;register;"+ newuser);
+                    System.out.println(newuser);
+                    String response;
+                    do {
+                        response = MulticastServer.receiveString(socket);
+                        //System.out.println(response);
+                    } while (response.contains("request"));
+                    System.out.println("Received: " + response);
+
+                    synchronized (msg){
+                        msg.setMsg(response);
+                        msg.notify();
+                    }
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+
+            }
+        }).start();
+
+        synchronized (msg) {
+            if(msg.isNull()){
+                try {
+                    msg.wait();
+                }
+                catch(InterruptedException e ){
+                    System.out.println("erro");
+                }
+            }
+            String str = msg.getMsg();
+            System.out.println(str);
+            if (str.contains("true")) {
+
+                return true;
+            } else {
+                return false;
+            }
+        }
+        //return true;
     }
 
     @Override
-    public user login(String username, String password) {
-        return null;
+    public int login(String username, String password) throws RemoteException {
+        System.out.println("LOGIN");
+        SharedMessage msg = new SharedMessage();
+        new MulticastSenderThread(socket, msg, new Runnable() {
+            public void run() {
+                try {
+                    ArrayList<String> ids = getServerIds();
+                    String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
+                    System.out.println("Sending to id: " + id);
+                    MulticastServer.sendString(socket, new String(id + ";request;login;" + username + ";" + password));
+                    String response;
+                    do {
+                        response = MulticastServer.receiveString(socket);
+                        //System.out.println(response);
+                    } while (response.contains("request"));
+                    System.out.println("Received: " + response);
+
+                    synchronized (msg){
+                        msg.setMsg(response);
+                        msg.notify();
+                    }
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+        }).start();
+
+        synchronized (msg) {
+            if(msg.isNull()){
+                try {
+                    msg.wait();
+                }
+                catch(InterruptedException e ){
+                    System.out.println("erro");
+                }
+            }
+            String str = msg.getMsg();
+            String[] temp = str.split(";");
+            if (temp[3].equals("false")) {
+                return 0;
+            } else {
+                if(temp[4].equals("true")) return 11;
+                else return 10;
+
+            }
+
+        }
     }
 
-    @Override
-    public void online(user user, rmi_interface_client c) {
+
+    public String send_all_return_str(String str){
+
+        SharedMessage msg = new SharedMessage();
+        new MulticastSenderThread(socket, msg, new Runnable() {
+            public void run() {
+                try {
+                    ArrayList<String> ids = getServerIds();
+                    String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
+                    System.out.println("Sending to id: " + id);
+
+                    MulticastServer.sendString(socket, "request;" + str);
+                    String response;
+                    do {
+                        response = MulticastServer.receiveString(socket);
+                        System.out.println(response);
+                    } while (!response.contains("rmi"));
+                    System.out.println("Received: " + response);
+
+                    synchronized (msg){
+                        msg.setMsg(response);
+                        msg.notify();
+                    }
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+        }).start();
+
+        synchronized (msg) {
+            if (msg.isNull()) {
+                try {
+                    msg.wait();
+                } catch (InterruptedException e) {
+                    System.out.println("erro");
+                }
+            }
+            return msg.getMsg();
+        }
 
     }
-
-    //#3 & 4
-    @Override
-    public ArrayList<album> showallalbuns() {
-        return null;
-    }
-
-    @Override
-    public ArrayList<author> showallauthors() {
-        return null;
-    }
-
-    @Override
-    public ArrayList<String> showallgenres() {
-        return null;
-    }
-
-    @Override
-    public ArrayList<music> showallsongs() {
-        return null;
-    }
-
-    @Override
-    public ArrayList<music> showsongsbygenre(String genero) {
-        return null;
-    }
-
-    @Override
-    public ArrayList<music> showsongsbyalbum(album album) {
-        return null;
-    }
-
-    //#5
-    @Override
-    public boolean writecomment(album album, user user, int points, String comment) {
-        return false;
-    }
-
-    //#6
-    @Override
-    public boolean giverights(user user) {
-        return false;
-    }
-
-    //#11
-    @Override
-    public boolean partilha(music musica, user user) {
-        return false;
-    }
-
 
 }

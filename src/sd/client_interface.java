@@ -1,8 +1,8 @@
 package sd;
 
-import java.rmi.Remote;
+import java.rmi.*;
 
 public interface client_interface extends Remote {
-    void notify_client() throws java.rmi.RemoteException;
+    void notify_client(String str) throws java.rmi.RemoteException;
 
 }
