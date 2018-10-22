@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class playlist implements Serializable {
+    private static final long serialVersionUID = 1L;
     private ArrayList<music> musicas;
     private boolean privacy;
     public playlist(){

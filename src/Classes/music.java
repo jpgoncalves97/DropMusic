@@ -1,122 +1,62 @@
 package Classes;
 
-import java.io.File;
 import java.io.Serializable;
-import java.security.Timestamp;
 import java.util.ArrayList;
 
 public class music implements Serializable {
-    private int id;
+    private static final long serialVersionUID = 1L;
     private boolean publico;
-    private String songname;
-    private ArrayList<Integer> CCs;
+    private String nome;
+    private ArrayList<String> users;
     private album album;
-    private String editora;
-    private ArrayList<String> compositores;
+    private band band;
+    private author author;
     private String lyrics;
-    private ArrayList<concert> concertos;
-    private Timestamp timelenght;
 
-    public music(int id, String songname, boolean publico, int primeiroCC, album album, String editora,ArrayList<String> compositores,  String lyrics, Timestamp timelenght){
-        this.songname = songname;
-        this.id = id;
+    public music(String nome, band b, boolean publico, album album, String lyrics){
+        this.nome = nome;
         this.publico = publico;
-        this.CCs = new ArrayList<>();
-        this.CCs.add(primeiroCC);
+        this.band = b;
+        this.author = null;
+        this.users = new ArrayList<>();
         this.album = album;
-        this.editora = editora;
-        this.compositores = compositores;
-        this.lyrics = lyrics;
-        this.timelenght = timelenght;
-        concertos = new ArrayList<>();
-    }
-
-    public void addConcert(concert newConcert){
-        this.concertos.add(newConcert);
-    }
-
-    public Classes.album getAlbum() {
-        return album;
-    }
-
-    public ArrayList<concert> getConcertos() {
-        return concertos;
-    }
-
-    public ArrayList<Integer> getCCs() {
-        return CCs;
-    }
-
-    public ArrayList<String> getCompositores() {
-        return compositores;
-    }
-
-    public boolean isPublico() {
-        return publico;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getEditora() {
-        return editora;
-    }
-
-    public String getLyrics() {
-        return lyrics;
-    }
-
-    public String getSongname() {
-        return songname;
-    }
-
-    public Timestamp getTimelenght() {
-        return timelenght;
-    }
-
-    public void setAlbum(Classes.album album) {
-        this.album = album;
-    }
-
-    public void setCCs(ArrayList<Integer> CCs) {
-        this.CCs = CCs;
-    }
-
-    public void setCompositores(ArrayList<String> compositores) {
-        this.compositores = compositores;
-    }
-
-    public void setConcertos(ArrayList<concert> concertos) {
-        this.concertos = concertos;
-    }
-
-    public void setEditora(String editora) {
-        this.editora = editora;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setLyrics(String lyrics) {
         this.lyrics = lyrics;
     }
 
-    public void setPublico(boolean publico) {
+    public music(String nome, author a, boolean publico, album album, String lyrics){
+        this.nome = nome;
         this.publico = publico;
+        this.author = a;
+        this.band = null;
+        this.users = new ArrayList<>();
+        this.album = album;
+        this.lyrics = lyrics;
     }
 
-    public void setSongname(String songname) {
-        this.songname = songname;
-    }
+    public album getAlbum() { return album; }
+    public ArrayList<String> getUsers() { return users; }
 
-    public void setTimelenght(Timestamp timelenght) {
-        this.timelenght = timelenght;
-    }
+    public boolean isPublico() { return publico; }
+    public String getLyrics() { return lyrics; }
+    public String getNome() { return nome; }
+    public author getAuthor(){ return author; }
+    public band getBand() { return band; }
+
+    public void setAlbum(Classes.album album) { this.album = album; }
+    public void setLyrics(String lyrics) { this.lyrics = lyrics; }
+    public void setPublico(boolean publico) { this.publico = publico; }
+    public void setNome(String nome) { this.nome = nome; }
 
     @Override
     public String toString() {
-        return super.toString();
+        String ret = "Nome: " + this.nome + "\nAutores: \n";
+        if (author != null){
+            ret += author.getNome() + "\n";
+        } else {
+            for (author a : band.getAuthors()){
+                ret += a.getNome() + "\n";
+            }
+        }
+        return ret;
     }
 }

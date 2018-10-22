@@ -1,25 +1,30 @@
 package Classes;
 
 import java.io.Serializable;
-import java.security.Timestamp;
-import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 public class album implements Serializable {
-    private String nomeAlbum;
+    private static final long serialVersionUID = 1L;
+    private String nome;
     private ArrayList<music> musicas;
     private ArrayList<critica> criticas;
     private ArrayList<author> authors;
     private String genero;
+    private String descricao;
+    private ArrayList<String> editoresDescricao;
     private Timestamp launchDate;
 
-    public album(String nomeAlbum, String genero, Timestamp launchDate){
-        this.nomeAlbum = nomeAlbum;
+    public album(String nome, String genero, Timestamp launchDate){
+        this.nome = nome;
         this.launchDate = launchDate;
         this.genero = genero;
+        this.descricao = "";
+        this.editoresDescricao = new ArrayList<>();
         this.musicas = new ArrayList<>();
         this.authors = new ArrayList<>();
         this.criticas = new ArrayList<>();
+        this.launchDate = launchDate;
     }
 
     public ArrayList<critica> getCriticas() {
@@ -28,7 +33,7 @@ public class album implements Serializable {
     public void setCriticas(ArrayList<critica> criticas) {
         this.criticas = criticas;
     }
-    public void addCriticas(critica newcritica){
+    public void addCritica(critica newcritica){
         this.criticas.add(newcritica);
     }
 
@@ -54,20 +59,40 @@ public class album implements Serializable {
         return genero;
     }
 
-    public String getNomeAlbum() {
-        return nomeAlbum;
+    public String getNome() {
+        return nome;
+    }
+
+    public float getPontuacaoMedia(){
+        float total = 0;
+        for (critica c : criticas){
+            total+= c.getPoints();
+        }
+        return total/criticas.size();
     }
 
     public void setGenero(String genero) {
         this.genero = genero;
     }
 
-    public void setNomeAlbum(String nomeAlbum) {
-        this.nomeAlbum = nomeAlbum;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     @Override
     public String toString() {
-        return super.toString();
+        String ret = "Nome: " + nome + "\n";
+        for (music m : musicas){
+            ret += m.getNome() + "\n";
+        }
+        ret += "Autores: " + "\n";
+        for (author a : authors){
+            ret += a.getNome() + "\n";
+        }
+        ret += "Pontuação média: " + getPontuacaoMedia() + "\n";
+        for (critica c : criticas){
+            ret += c.toString() + "\n";
+        }
+        return ret;
     }
 }
