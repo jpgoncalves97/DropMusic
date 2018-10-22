@@ -304,18 +304,15 @@ class MulticastServer extends Thread implements Serializable {
                     case "login":
                         System.out.println("Login request");
                         user u1 = users.get(msg[3]);
-                        if (u1 == null) {
-                            return "response;login;false;bad_username";
-                        }
-                        if (!u1.getPassword().equals(msg[4])) {
-                            return "response;login;false;bad_password";
+                        if (u1 == null || !u1.getPassword().equals(msg[4])) {
+                            return "response;login;false;false";
                         }
                         return "response;login;true;" + (u1.isEditor() ? "true" : "false");
                     case "edit":
                         switch (msg[3]) {
-                            case "remove":
-                            case "change":
-                            case "insert":
+                            case "music":
+                            case "author":
+                            case "album":
                         }
                     case "music_search":
                         switch (msg[3]) {
@@ -326,14 +323,12 @@ class MulticastServer extends Thread implements Serializable {
                                     if (a != null) {
                                         if (a.getNome().equals(msg[4])) {
                                             resposta.add(m.getNome());
-                                            continue;
                                         }
                                     } else {
                                         band b = m.getBand();
                                         for (author a1 : b.getAuthors()) {
                                             if (a1.getNome().equals(msg[4])) {
                                                 resposta.add(m.getNome());
-                                                continue;
                                             }
                                         }
                                     }
@@ -359,7 +354,7 @@ class MulticastServer extends Thread implements Serializable {
                                 }
                                 return ret;
                             }
-                            case "album":{
+                            case "album": {
                                 ArrayList<String> resposta = new ArrayList<>();
                                 for (album a : albums) {
                                     if (a.getNome().equals(msg[4])) {
@@ -381,29 +376,29 @@ class MulticastServer extends Thread implements Serializable {
                             }
                         }
                     case "details":
-                        switch (msg[3]){
+                        switch (msg[3]) {
                             case "album":
-                                for (album a : albums){
-                                    if (a.getNome().equals(msg[4])){
+                                for (album a : albums) {
+                                    if (a.getNome().equals(msg[4])) {
                                         return a.toString();
                                     }
                                 }
                             case "artista":
-                                for (author a : authors){
-                                    if (a.getNome().equals(msg[4])){
+                                for (author a : authors) {
+                                    if (a.getNome().equals(msg[4])) {
                                         return a.toString();
                                     }
                                 }
                             case "musica":
-                                for (music m : musicas){
-                                    if (m.getNome().equals(msg[4])){
+                                for (music m : musicas) {
+                                    if (m.getNome().equals(msg[4])) {
                                         return m.toString();
                                     }
                                 }
                         }
                     case "critic":
-                        for (album a : albums){
-                            if (a.getNome().equals(msg[3])){
+                        for (album a : albums) {
+                            if (a.getNome().equals(msg[3])) {
                                 a.addCritica(new critica(Integer.parseInt(msg[4]), msg[5]));
                                 return "ign";
                             }
