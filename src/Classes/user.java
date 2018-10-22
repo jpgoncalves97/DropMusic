@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class user implements Serializable{
     private static final long serialVersionUID = 1L;
-    public boolean online_state;
+    public boolean online;
     private boolean editor;
     private int idade;
     private String username;
@@ -21,7 +21,7 @@ public class user implements Serializable{
     }
 
     public user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc){
-        online_state = false;
+        online = false;
         this.editor = editor;
         this.idade = idade;
         this.username=username;
@@ -33,12 +33,12 @@ public class user implements Serializable{
         playlists = new ArrayList<>();
     }
 
-    public boolean isOnline_state() {
-        return online_state;
+    public boolean isOnline() {
+        return online;
     }
 
-    public void setOnline_state(boolean online_state) {
-        this.online_state = online_state;
+    public void setOnline(boolean online_state) {
+        this.online = online;
     }
 
     public boolean isEditor() {

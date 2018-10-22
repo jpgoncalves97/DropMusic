@@ -2,22 +2,17 @@ package sd;
 
 import Classes.*;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import java.io.*;
 import java.net.*;
-import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 class MulticastServer extends Thread implements Serializable {
 
     private final static String MULTICAST_ADDRESS = "224.0.224.0";
     private final static int PORT = 4321;
     protected static int TCP_PORT = 1234;
-    private static InetAddress group;
-    private final String id;//Long.toString(System.currentTimeMillis());
+    private MulticastSocket socket;
+    private final String id = Long.toString(System.currentTimeMillis());
     private final String mainPath = "C:/Users/j/Desktop/multicast/";
     private final String userPath = mainPath + "users";
     private final String albumPath = mainPath + "albuns";
@@ -27,25 +22,19 @@ class MulticastServer extends Thread implements Serializable {
     private HashMap<String, user> users;
     private ArrayList<author> authors;
     private ArrayList<album> albums;
-    private ArrayList<String> notificacoes;
+    private ArrayList<notificacao> notificacoes;
     private ArrayList<music> musicas;
     private ArrayList<File> fileMusicas;
+    private LinkedList<String> requests;
 
     public MulticastServer() {
         super();
-        id = Long.toString(ThreadLocalRandom.current().nextInt(0, 99));
         System.out.println("Server id# " + id);
 
         // TCPHandler(TCP_PORT);
-        try {
-            group = InetAddress.getByName(MULTICAST_ADDRESS);
-        } catch (UnknownHostException e) {
-            System.out.println(e);
-        }
-        MulticastSocket socket = newMulticastSocket();
-        SharedMessage msg = new SharedMessage();
-        newReceiverThread(socket, msg);
-        newSenderThread(socket, msg);
+        socket = newMulticastSocket();
+        newReceiverThread();
+        newSenderThread();
 
         File[] temp = new File(musicFilePath).listFiles();
         System.out.println("Musicas");
@@ -55,6 +44,7 @@ class MulticastServer extends Thread implements Serializable {
             fileMusicas = new ArrayList<>(Arrays.asList(temp));
             listMusic();
         }
+        requests = new LinkedList<>();
         musicas = new ArrayList<>((ArrayList) readFromFile(musicPath));
         users = new HashMap<>(100);
         authors = new ArrayList<>(Arrays.asList((author[]) readFromFile(authorPath)));
@@ -285,40 +275,102 @@ class MulticastServer extends Thread implements Serializable {
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             socket.joinGroup(group);
         } catch (IOException e) {
-
+            System.out.println(e);
         }
         return socket;
     }
 
-    public String decodeMessage(String[] msg) {
+    public void sendNotifications(user u) {
+        for (notificacao n : notificacoes) {
+            if (n.getUsername().equals(u.getUsername())) {
+                sendString(socket, n.getMensagem());
+            }
+        }
+    }
+
+    public void decodeMessage(String[] msg) {
 
         if (msg[0].equals(id) || msg[0].equals("0")) {
             if (msg[1].equals("request")) {
                 switch (msg[2]) {
                     case "server_id":
-                        return "response;server_id;" + id;
+                        sendString(socket, "response;server_id;" + id);
+                        return;
                     case "register":
                         //user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc)
                         user u = new user(false, Integer.parseInt(msg[3]), msg[4], msg[5], msg[6], Integer.parseInt(msg[7]), msg[8], Integer.parseInt(msg[9]));
-                        return registerUser(u) ? "response;register;true" : "response;register;false";
+                        u.setOnline(true);
+                        sendNotifications(u);
+                        sendString(socket, registerUser(u) ? "response;register;true" : "response;register;false");
+                        return;
                     case "login":
                         System.out.println("Login request");
                         user u1 = users.get(msg[3]);
                         if (u1 == null || !u1.getPassword().equals(msg[4])) {
-                            return "response;login;false;false";
+                            sendString(socket, "response;login;false;false");
+                        } else {
+                            u1.setOnline(true);
+                            sendNotifications(u1);
                         }
-                        return "response;login;true;" + (u1.isEditor() ? "true" : "false");
+                        sendString(socket, "response;login;true;" + (u1.isEditor() ? "true" : "false"));
+                        return;
                     case "edit":
                         switch (msg[3]) {
                             case "music":
+                                for (music m : musicas) {
+                                    if (m.getNome().equals(msg[4])) {
+                                        switch (msg[5]) {
+                                            case "letra":
+                                                m.setLyrics(msg[6]);
+                                                break;
+                                            case "nome":
+                                                m.setNome(msg[6]);
+                                        }
+                                        return;
+                                    }
+                                }
                             case "author":
+                                switch (msg[5]) {
+                                    case "nome":
+                                        for (author a : authors) {
+                                            if (a.getNome().equals(msg[4])) {
+                                                a.setNome(msg[5]);
+                                                return;
+                                            }
+                                        }
+                                    case "descricao":
+                                        for (author a : authors) {
+                                            if (a.getNome().equals(msg[4])) {
+                                                a.setNome(msg[5]);
+                                                return;
+                                            }
+                                        }
+                                }
                             case "album":
+                                for (album a : albums) {
+                                    if (a.getNome().equals(msg[4])) {
+                                        switch (msg[5]) {
+                                            case "nome":
+                                                a.setNome(msg[6]);
+                                                break;
+                                            case "genero":
+                                                a.setGenero(msg[6]);
+                                                break;
+                                            case "descricao":
+                                                a.setDescricao(msg[6]);
+                                        }
+                                        return;
+                                    }
+                                }
                         }
                     case "music_search":
-                        switch (msg[3]) {
+                        switch (msg[4]) {
                             case "artista": {
                                 ArrayList<String> resposta = new ArrayList<>();
                                 for (music m : musicas) {
+                                    if (!m.canGetMusic(msg[3])) {
+                                        continue;
+                                    }
                                     author a = m.getAuthor();
                                     if (a != null) {
                                         if (a.getNome().equals(msg[4])) {
@@ -337,13 +389,15 @@ class MulticastServer extends Thread implements Serializable {
                                 for (String s : resposta) {
                                     ret += s + ";";
                                 }
-                                return ret;
+                                sendString(socket, ret);
+                                return;
                             }
                             case "genero": {
                                 ArrayList<String> resposta = new ArrayList<>();
                                 for (album a : albums) {
                                     if (a.getGenero().equals(msg[4])) {
                                         for (music m : a.getMusicas()) {
+                                            if (!m.canGetMusic(msg[3])) continue;
                                             resposta.add(m.getNome());
                                         }
                                     }
@@ -352,27 +406,33 @@ class MulticastServer extends Thread implements Serializable {
                                 for (String s : resposta) {
                                     ret += s + ";";
                                 }
-                                return ret;
+                                sendString(socket, ret);
+                                return;
                             }
                             case "album": {
                                 ArrayList<String> resposta = new ArrayList<>();
                                 for (album a : albums) {
                                     if (a.getNome().equals(msg[4])) {
                                         for (music m : a.getMusicas()) {
+                                            if (!m.canGetMusic(msg[3])) {
+                                                continue;
+                                            }
                                             resposta.add(m.getNome());
                                         }
                                         String ret = "response;music_search;" + resposta.size() + ";";
                                         for (String s : resposta) {
                                             ret += s + ";";
                                         }
-                                        return ret;
+                                        sendString(socket, ret);
+                                        return;
                                     }
                                 }
                                 String ret = "response;music_search;" + resposta.size() + ";";
                                 for (String s : resposta) {
                                     ret += s + ";";
                                 }
-                                return ret;
+                                sendString(socket, ret);
+                                return;
                             }
                         }
                     case "details":
@@ -380,19 +440,22 @@ class MulticastServer extends Thread implements Serializable {
                             case "album":
                                 for (album a : albums) {
                                     if (a.getNome().equals(msg[4])) {
-                                        return a.toString();
+                                        sendString(socket, a.toString());
+                                        return;
                                     }
                                 }
                             case "artista":
                                 for (author a : authors) {
                                     if (a.getNome().equals(msg[4])) {
-                                        return a.toString();
+                                        sendString(socket, a.toString());
+                                        return;
                                     }
                                 }
                             case "musica":
                                 for (music m : musicas) {
                                     if (m.getNome().equals(msg[4])) {
-                                        return m.toString();
+                                        sendString(socket, m.toString());
+                                        return;
                                     }
                                 }
                         }
@@ -400,33 +463,30 @@ class MulticastServer extends Thread implements Serializable {
                         for (album a : albums) {
                             if (a.getNome().equals(msg[3])) {
                                 a.addCritica(new critica(Integer.parseInt(msg[4]), msg[5]));
-                                return "ign";
+                                return;
                             }
                         }
                     case "give_editor":
                         users.get(msg[3]).setEditor(true);
-                        return "ign";
-                    /*case "list_users":
-                        for (String key : users.keySet()){
-                            System.out.println(users.get(key).toString());
+                        String notificacao = "response;notification;" + msg[3] + ";Obteve privilégios de editor";
+                        if (users.get(msg[3]).isOnline()) {
+                            sendString(socket, notificacao);
+                        } else {
+                            notificacoes.add(new notificacao(msg[3], notificacao));
                         }
-                        return "ign";*/
-
-
-                    default:
-                        return "ign";
                 }
-            } else {
-                return "ign";
             }
         }
-        return "ign";
     }
 
-    public static void sendString(MulticastSocket socket, String msg) throws IOException {
+    public static void sendString(MulticastSocket socket, String msg) {
         byte[] buffer = msg.getBytes();
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(MULTICAST_ADDRESS), MulticastServer.PORT);
-        socket.send(packet);
+        try {
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(MULTICAST_ADDRESS), MulticastServer.PORT);
+            socket.send(packet);
+        } catch (IOException e) {
+            System.out.println(e);
+        }
     }
 
     public static String receiveString(MulticastSocket socket) throws IOException {
@@ -440,8 +500,8 @@ class MulticastServer extends Thread implements Serializable {
         return new String(d.getData(), d.getOffset(), d.getLength());
     }
 
-    public void newReceiverThread(MulticastSocket socket, SharedMessage msg) {
-        new MulticastReceiverThread(socket, msg, new Runnable() {
+    public void newReceiverThread() {
+        new Thread(new Runnable() {
             public void run() {
                 while (true) {
                     try {
@@ -450,111 +510,40 @@ class MulticastServer extends Thread implements Serializable {
                         do {
                             request = receiveString(socket);
                         } while (request.contains("response"));
-                        String response = decodeMessage(request.split(";"));
-                        if (!response.equals("ign")) {
-                            System.out.println("Received: " + request);
-                            synchronized (msg) {
-                                msg.setMsg(response);
-                                msg.notify();
-                            }
+                        synchronized (requests) {
+                            requests.add(request);
+                            requests.notify();
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.out.println(e);
                     }
                 }
             }
         }).start();
     }
 
-    public void newSenderThread(MulticastSocket socket, SharedMessage msg) {
-        new MulticastSenderThread(socket, msg, new Runnable() {
+    public void newSenderThread() {
+        new Thread(new Runnable() {
             public void run() {
 
                 while (true) {
-                    String m;
-                    try {
-                        byte[] buffer;
-                        synchronized (msg) {
-                            if (msg.isNull()) {
-                                try {
-                                    msg.wait();
-                                } catch (InterruptedException e) {
-                                    System.out.println("Thread interrompida: " + e);
-                                }
+                    String request;
+                    byte[] buffer;
+                    synchronized (requests) {
+                        if (requests.size() == 0) {
+                            try {
+                                requests.wait();
+                            } catch (InterruptedException e) {
+                                System.out.println("Thread interrompida: " + e);
                             }
-                            m = id + ";" + msg.getMsg();
-                            buffer = m.getBytes();
                         }
-                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MulticastServer.PORT);
-                        socket.send(packet);
-                        System.out.println("Sending response: " + m);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        request = id + ";" + requests.getFirst();
+                        requests.removeFirst();
                     }
+                    decodeMessage(request.split(";"));
                 }
             }
         }).start();
     }
 
-}
-
-class MulticastReceiverThread extends Thread {
-
-    private MulticastSocket socket;
-    private SharedMessage msg;
-
-    MulticastReceiverThread(MulticastSocket socket, SharedMessage msg, Runnable runnable) {
-        super(runnable);
-        this.msg = msg;
-        this.socket = socket;
-    }
-
-}
-
-class MulticastSenderThread extends Thread {
-
-    private MulticastSocket socket;
-    private SharedMessage msg;
-
-    MulticastSenderThread(MulticastSocket socket, SharedMessage msg, Runnable runnable) {
-        super(runnable);
-        this.msg = msg;
-        this.socket = socket;
-    }
-
-}
-
-class SharedMessage {
-
-    private ArrayList<String> msgList;
-
-    SharedMessage() {
-        msgList = new ArrayList<>();
-    }
-
-    public void print() {
-        System.out.println("Message list");
-        for (int i = 0; i < msgList.size(); i++) {
-            System.out.println(msgList.get(i));
-        }
-    }
-
-    public void setMsg(String msg) {
-        msgList.add(msg);
-    }
-
-    public boolean isNull() {
-        return msgList.isEmpty();
-    }
-
-    public String getMsg() {
-
-        if (msgList.isEmpty()) return null;
-        else {
-            String s = msgList.get(0);
-            msgList.remove(0);
-            return s;
-        }
-    }
 }
