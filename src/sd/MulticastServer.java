@@ -1,41 +1,42 @@
 package sd;
 
-import Classes.user;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import Classes.*;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 import java.io.*;
 import java.net.*;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-class MulticastServer extends Thread {
+class MulticastServer extends Thread implements Serializable {
 
-    protected static String MULTICAST_ADDRESS = "224.0.224.0";
-    protected static int PORT = 4321;
+    private final static String MULTICAST_ADDRESS = "224.0.224.0";
+    private final static int PORT = 4321;
     protected static int TCP_PORT = 1234;
-    protected static InetAddress group;
-    protected String id;
-    private final String path = "C:/Users/j/Desktop/multicast/";
-    private final String userPath = path + "users";
+    private static InetAddress group;
+    private final String id;//Long.toString(System.currentTimeMillis());
+    private final String mainPath = "C:/Users/j/Desktop/multicast/";
+    private final String userPath = mainPath + "users";
+    private final String albumPath = mainPath + "albuns";
+    private final String authorPath = mainPath + "authors";
+    private final String musicPath = mainPath + "music";
+    private final String musicFilePath = mainPath + "musica";
     private HashMap<String, user> users;
-    private ArrayList<File> musicas;
-    private String musicFilePath;
+    private ArrayList<author> authors;
+    private ArrayList<album> albums;
+    private ArrayList<String> notificacoes;
+    private ArrayList<music> musicas;
+    private ArrayList<File> fileMusicas;
 
     public MulticastServer() {
         super();
-        //id = System.currentTimeMillis();
         id = Long.toString(ThreadLocalRandom.current().nextInt(0, 99));
         System.out.println("Server id# " + id);
-        /*musicFilePath = "C:/Users/j/Desktop/musica_server";
-        File[] temp = new File(musicFilePath).listFiles();
-        System.out.println("Musicas");
-        if (temp == null){
-            musicas = new ArrayList<>();
-        } else {
-            musicas = new ArrayList<>(Arrays.asList(temp));
-            listMusic();
-        }
-        TCPHandler(TCP_PORT);*/
+
+        // TCPHandler(TCP_PORT);
         try {
             group = InetAddress.getByName(MULTICAST_ADDRESS);
         } catch (UnknownHostException e) {
@@ -46,72 +47,149 @@ class MulticastServer extends Thread {
         newReceiverThread(socket, msg);
         newSenderThread(socket, msg);
 
-        users = readUserFile();
-        //user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc)
-        /*user u[] = new user[]{new user(false, 10, "a", "x", "nome", 123, "ad", 23),
-                new user(false, 10, "an", "x", "nome", 123, "ad", 24),
-                new user(false, 10, "aa", "x", "nome", 123, "ad", 25)};
+        File[] temp = new File(musicFilePath).listFiles();
+        System.out.println("Musicas");
+        if (temp == null) {
+            fileMusicas = new ArrayList<>();
+        } else {
+            fileMusicas = new ArrayList<>(Arrays.asList(temp));
+            listMusic();
+        }
+        musicas = new ArrayList<>((ArrayList) readFromFile(musicPath));
+        users = new HashMap<>(100);
+        authors = new ArrayList<>(Arrays.asList((author[]) readFromFile(authorPath)));
+        albums = new ArrayList<>(Arrays.asList((album[]) readFromFile(albumPath)));
+        notificacoes = new ArrayList<>();
+        readUserFile();
+        for (music m : musicas) {
+            System.out.println(m.toString());
+        }
 
-        registerUser(u[0]);
-        registerUser(u[1]);
-        registerUser(u[2]);
-        for (user u1 : users.values()){
-            System.out.println(users.get(u1.getUsername()).getNum_cc());
-        }*/
+        /*author[] a = {new author("Eminem"), new author("Drake"), new author("Michael Jackson"),
+                new author("Angus Young"), new author("Brian Johnson"), new author("Bon Scott"), new author("Axl Rose"),
+                new author("Roger Waters"), new author("David Gilmour"), new author("Syd Barrett"),
+                new author("Richard Wright"), new author("Nick Mason"), new author("Bob Klose"),
+                new author("Damon Albarn"), new author("Jamie Hewlett"), new author("Paul Simonon")};
+        band[] b = {new band("AC/DC"), new band("Pink Floyd"), new band("Gorillaz")};
+        b[0].addAuthor(a[3]);
+        b[0].addAuthor(a[4]);
+        b[0].addAuthor(a[5]);
+        b[0].addAuthor(a[6]);
+        b[1].addAuthor(a[7]);
+        b[1].addAuthor(a[8]);
+        b[1].addAuthor(a[9]);
+        b[1].addAuthor(a[10]);
+        b[1].addAuthor(a[11]);
+        b[1].addAuthor(a[12]);
+        b[2].addAuthor(a[13]);
+        b[2].addAuthor(a[14]);
+        b[2].addAuthor(a[15]);
+        album[] al = {new album("Back in Black", "Rock", new Timestamp(1980, 7, 25, 0, 0, 0,0)),
+                new album("The Dark Side of The Moon", "Rock", new Timestamp(1973, 3, 1, 0, 0,0 ,0)),
+                new album("Kamikaze", "Hip-Hop", new Timestamp(2018, 8, 31, 0, 0,0 ,0)),
+                new album("Scorpion", "Hip-Hop", new Timestamp(2018, 6, 29, 0, 0,0, 0)),
+                new album("Thriller", "Pop", new Timestamp(1982, 11, 30, 0, 0,0,0)),
+                new album("Demon days", "Pop", new Timestamp(2015, 5, 11 , 0,0,0,0))};
+        //String nome, band b, boolean publico, album album, String lyrics, Timestamp timelenght)
+        musicas.add(new music("Any Colour You Like", b[1], true, al[1], ""));
+        musicas.add(new music("Back In Black", b[0], true, al[0], ""));
+        musicas.add(new music("Beat it", a[2], true, al[4], ""));
+        musicas.add(new music("Billie Jean", a[2], true, al[4], ""));
+        musicas.add(new music("Dare", b[2], true, al[5], ""));
+        musicas.add(new music("Dirty Harry", b[2], true, al[5], ""));
+        musicas.add(new music("Fall", a[0], true, al[2], ""));
+        musicas.add(new music("Gods Plan", a[1], true, al[3], ""));
+        musicas.add(new music("Have a drink on me", b[0], true, al[0], ""));
+        musicas.add(new music("In My Feelings", a[1], true, al[3], ""));
+        musicas.add(new music("Kamikaze", a[0], true, al[2], ""));
+        musicas.add(new music("Kids with guns", b[2], true, al[5], ""));
+        musicas.add(new music("Lucky You", a[0], true, al[2], ""));
+        musicas.add(new music("Money", b[1], true, al[1], ""));
+        musicas.add(new music("Thriller", a[2], true, al[4], ""));
+        musicas.add(new music("Us and Them", b[1], true, al[1], ""));
+        musicas.add(new music("You shook me all night long", b[0], true, al[0], ""));
+        al[0].addMusicas(musicas.get(1));
+        al[0].addMusicas(musicas.get(8));
+        al[0].addMusicas(musicas.get(16));
+        al[1].addMusicas(musicas.get(0));
+        al[1].addMusicas(musicas.get(13));
+        al[1].addMusicas(musicas.get(15));
+        al[2].addMusicas(musicas.get(6));
+        al[2].addMusicas(musicas.get(10));
+        al[2].addMusicas(musicas.get(12));
+        al[3].addMusicas(musicas.get(7));
+        al[3].addMusicas(musicas.get(9));
+        al[4].addMusicas(musicas.get(2));
+        al[4].addMusicas(musicas.get(3));
+        al[4].addMusicas(musicas.get(14));
+        al[5].addMusicas(musicas.get(4));
+        al[5].addMusicas(musicas.get(5));
+        al[5].addMusicas(musicas.get(11));
+        b[0].addAlbum(al[0]);
+        b[1].addAlbum(al[1]);
+        b[2].addAlbum(al[5]);
+        a[0].addAlbum(al[2]);
+        a[1].addAlbum(al[3]);
+        a[2].addAlbum(al[4]);
+        writeToFile(albumPath, al);
+        writeToFile(musicPath, musicas);
+        writeToFile(authorPath, a);
+        writeToFile(mainPath + "bands", b);*/
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         new MulticastServer();
     }
 
-    public HashMap<String, user> readUserFile() {
-        HashMap<String, user> users = new HashMap<>(100);
-        ObjectInputStream ois;
+    public void readUserFile() {
+        File f = new File(userPath);
+        if (!f.exists()) {
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+            registerUser(new user(true, 0, "admin", "admin", "admin", 0, "", 0));
+            return;
+        }
+        users = (HashMap<String, user>) readFromFile(userPath);
+    }
+
+    public Object readFromFile(String mainPath) {
+        Object o;
         try {
-            ois = new ObjectInputStream(new FileInputStream(path + "users"));
+            FileInputStream fis = new FileInputStream(new File(mainPath));
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            o = ois.readObject();
+            fis.close();
+            ois.close();
         } catch (Exception e) {
             System.out.println(e);
             return null;
         }
-        while (true) {
-            try {
-                user u = (user) ois.readObject();
-                System.out.println(u.getUsername());
-                users.put(u.getUsername(), u);
-            } catch (EOFException e) {
-                try {
-                    ois.close();
-                } catch (IOException e1){
-                    System.out.println(e1);
-                }
-                return users;
-            } catch (IOException e) {
-                System.out.println(e);
-                return null;
-            } catch (ClassNotFoundException e) {
-                System.out.println(e);
-                return null;
-            }
+        return o;
+    }
+
+    public void writeToFile(String mainPath, Object o) {
+        try {
+            FileOutputStream fos = new FileOutputStream(new File(mainPath));
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(o);
+            fos.close();
+            oos.close();
+        } catch (Exception e) {
+            System.out.println(e);
         }
     }
 
-
-
-    public boolean registerUser(user u){
+    public boolean registerUser(user u) {
         // Check if user pode ser registado(parametros validos)
         if (users.containsKey(u.getUsername())) {
             System.out.println("Username " + u.getUsername() + " já existe");
             return false;
         }
         users.put(u.getUsername(), u);
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(userPath));
-            oos.writeObject(u);
-        } catch (FileNotFoundException e){
-
-        } catch (IOException e){
-
-        }
+        writeToFile(userPath, users);
         return true;
     }
 
@@ -139,7 +217,7 @@ class MulticastServer extends Thread {
     }
 
     public void listMusic() {
-        for (File file : musicas) {
+        for (File file : fileMusicas) {
             if (file.isFile()) {
                 System.out.println(file.getName());
             }
@@ -155,39 +233,40 @@ class MulticastServer extends Thread {
                     OutputStream out = clientSocket.getOutputStream();
                     // Upload
                     int r = in.read();
-                    System.out.println(r);
                     if (r == 0) {
+                        System.out.println("Downloading file");
                         byte[] music = new byte[1024];
                         int read = in.read(music);
                         String nome_musica = new String(music, 0, read);
-                        TCP.downloadFile(musicFilePath, musicas, nome_musica, in);
+                        TCP.downloadFile(musicFilePath, fileMusicas, nome_musica, in);
                     }
                     // Download
                     else {
+                        System.out.println("Uploading file");
                         byte[] music = new byte[1024];
                         int i;
                         while (true) {
                             int read = in.read(music);
                             String nome_musica = new String(music, 0, read);
                             System.out.println("Searching for " + nome_musica);
-                            for (i = 0; i < musicas.size(); i++) {
-                                if (musicas.get(i).getName().equals(nome_musica)) {
+                            for (i = 0; i < fileMusicas.size(); i++) {
+                                if (fileMusicas.get(i).getName().equals(nome_musica)) {
                                     System.out.println("Ficheiro encontrado");
                                     out.write(1);
                                     break;
                                 }
                             }
-                            if (i == musicas.size()) {
+                            if (i == fileMusicas.size()) {
                                 System.out.println("Ficheiro não encontrado");
                                 out.write(0);
                             } else {
                                 break;
                             }
                         }
-                        System.out.println("Sending " + musicas.get(i).length() + " bytes");
+                        System.out.println("Sending " + fileMusicas.get(i).length() + " bytes");
                         // Writing the file to disk
                         // Instantiating a new out stream object
-                        TCP.uploadFile(musicas.get(i), out);
+                        TCP.uploadFile(fileMusicas.get(i), out);
 
                     }
                     clientSocket.close();
@@ -212,6 +291,7 @@ class MulticastServer extends Thread {
     }
 
     public String decodeMessage(String[] msg) {
+
         if (msg[0].equals(id) || msg[0].equals("0")) {
             if (msg[1].equals("request")) {
                 switch (msg[2]) {
@@ -224,13 +304,120 @@ class MulticastServer extends Thread {
                     case "login":
                         System.out.println("Login request");
                         user u1 = users.get(msg[3]);
-                        if (u1 == null){
+                        if (u1 == null) {
                             return "response;login;false;bad_username";
                         }
-                        if (!u1.getPassword().equals(msg[4])){
+                        if (!u1.getPassword().equals(msg[4])) {
                             return "response;login;false;bad_password";
                         }
                         return "response;login;true;" + (u1.isEditor() ? "true" : "false");
+                    case "edit":
+                        switch (msg[3]) {
+                            case "remove":
+                            case "change":
+                            case "insert":
+                        }
+                    case "music_search":
+                        switch (msg[3]) {
+                            case "artista": {
+                                ArrayList<String> resposta = new ArrayList<>();
+                                for (music m : musicas) {
+                                    author a = m.getAuthor();
+                                    if (a != null) {
+                                        if (a.getNome().equals(msg[4])) {
+                                            resposta.add(m.getNome());
+                                            continue;
+                                        }
+                                    } else {
+                                        band b = m.getBand();
+                                        for (author a1 : b.getAuthors()) {
+                                            if (a1.getNome().equals(msg[4])) {
+                                                resposta.add(m.getNome());
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+                                String ret = "response;music_search;" + resposta.size() + ";";
+                                for (String s : resposta) {
+                                    ret += s + ";";
+                                }
+                                return ret;
+                            }
+                            case "genero": {
+                                ArrayList<String> resposta = new ArrayList<>();
+                                for (album a : albums) {
+                                    if (a.getGenero().equals(msg[4])) {
+                                        for (music m : a.getMusicas()) {
+                                            resposta.add(m.getNome());
+                                        }
+                                    }
+                                }
+                                String ret = "response;music_search;" + resposta.size() + ";";
+                                for (String s : resposta) {
+                                    ret += s + ";";
+                                }
+                                return ret;
+                            }
+                            case "album":{
+                                ArrayList<String> resposta = new ArrayList<>();
+                                for (album a : albums) {
+                                    if (a.getNome().equals(msg[4])) {
+                                        for (music m : a.getMusicas()) {
+                                            resposta.add(m.getNome());
+                                        }
+                                        String ret = "response;music_search;" + resposta.size() + ";";
+                                        for (String s : resposta) {
+                                            ret += s + ";";
+                                        }
+                                        return ret;
+                                    }
+                                }
+                                String ret = "response;music_search;" + resposta.size() + ";";
+                                for (String s : resposta) {
+                                    ret += s + ";";
+                                }
+                                return ret;
+                            }
+                        }
+                    case "details":
+                        switch (msg[3]){
+                            case "album":
+                                for (album a : albums){
+                                    if (a.getNome().equals(msg[4])){
+                                        return a.toString();
+                                    }
+                                }
+                            case "artista":
+                                for (author a : authors){
+                                    if (a.getNome().equals(msg[4])){
+                                        return a.toString();
+                                    }
+                                }
+                            case "musica":
+                                for (music m : musicas){
+                                    if (m.getNome().equals(msg[4])){
+                                        return m.toString();
+                                    }
+                                }
+                        }
+                    case "critic":
+                        for (album a : albums){
+                            if (a.getNome().equals(msg[3])){
+                                a.addCritica(new critica(Integer.parseInt(msg[4]), msg[5]));
+                                return "ign";
+                            }
+                        }
+                    case "give_editor":
+                        users.get(msg[3]).setEditor(true);
+                        return "ign";
+                    /*case "list_users":
+                        for (String key : users.keySet()){
+                            System.out.println(users.get(key).toString());
+                        }
+                        return "ign";*/
+
+
                     default:
                         return "ign";
                 }

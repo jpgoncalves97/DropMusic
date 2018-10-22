@@ -3,72 +3,41 @@ package Classes;
 import java.io.Serializable;
 import java.security.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class band implements Serializable{
-    private String nomedabanda;
+    private static final long serialVersionUID = 1L;
+    private String nome;
     private ArrayList<author> authors;
     private ArrayList<album> albuns;
-    private Timestamp creation_date;
-    private ArrayList<String> info;
 
-    public band(String nomedabanda){
-        this.nomedabanda = nomedabanda;
-        authors = new ArrayList<>();
+    public band(String nome){
+        this.nome = nome;
+        this.authors = new ArrayList<>();
         albuns = new ArrayList<>();
-        info = new ArrayList<>();
     }
 
-    public ArrayList<author> getMusicos() {
-        return authors;
-    }
     public ArrayList<author> getAuthors() {
         return authors;
     }
+    public ArrayList<album> getAlbuns() {
+        return albuns;
+    }
+    public String getNome() { return nome; }
 
     public void setAlbuns(ArrayList<album> albuns) {
         this.albuns = albuns;
     }
-
-    public ArrayList<album> getAlbuns() {
-        return albuns;
-    }
-
-    public ArrayList<String> getInfo() {
-        return info;
-    }
-
-    public String getNomedabanda() {
-        return nomedabanda;
-    }
-
-    public Timestamp getCreation_date() {
-        return creation_date;
-    }
-
-    public void setCreation_date(Timestamp creation_date) {
-        this.creation_date = creation_date;
-    }
-
-    public void setInfo(ArrayList<String> info) {
-        this.info = info;
-    }
-
-    public void setNomedabanda(String nomedabanda) {
-        this.nomedabanda = nomedabanda;
-    }
-    public void addInfo(String moreInfo){
-        this.info.add(moreInfo);
-    }
-
     public void setAuthors(ArrayList<author> authors) {
         this.authors = authors;
     }
-    public void setMusicos(ArrayList<author> musicos) {
-        this.authors = musicos;
-    }
-    public void addMusicos(author user_musico){
+    public void addAuthor(author user_musico){
         this.authors.add(user_musico);
     }
+    public void addAlbum(album album){
+        this.albuns.add(album);
+    }
+
 
     @Override
     public String toString() {

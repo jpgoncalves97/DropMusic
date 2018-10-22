@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class user implements Serializable{
+    private static final long serialVersionUID = 1L;
     public boolean online_state;
     private boolean editor;
     private int idade;
@@ -99,6 +100,6 @@ public class user implements Serializable{
     }
     @Override
     public String toString() {
-        return super.toString();
+        return "Username: " + nome + "\nEditor: " + (isEditor() ? "true" : "false") + "\n";
     }
 }

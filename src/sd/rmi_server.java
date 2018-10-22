@@ -94,7 +94,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
 
         ArrayList<String> ids = new ArrayList<>();
         try {
-            socket.setSoTimeout(100);
+            socket.setSoTimeout(1000);
         } catch (SocketException e) {
             System.out.println(e);
         }

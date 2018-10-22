@@ -3,10 +3,40 @@ ign
 request;server_id
 response;server_id;id
 
+#1 Registar pessoas
 request;register;int idade; String username; String password; String nome; int phone_num; String address; int num_cc
 response;register;bool sucesso
-
 request;login;String username; String password;
 response;login;bool sucesso;bool editor(sucesso = true) ou String error_msg(sucesso = false)
 
-.
+#2 Gerir artistas, álbuns e músicas
+request;edit;remove;nome(album/author/music);detalhe a remover
+request;edit;change;nome(album/author/music);detalhe a alterar;alteracao
+request;edit;insert;nome(album/author/music);detalhe a inserir;alteracao
+
+#3 Pesquisar músicas
+request;music_search;artista/genero_musical/album;String informacao
+response;music_search;int item_count;String[item_count] nome_musicas
+
+#4 Consultar detalhes sobre álbum e sobre artista
+request;details;album/artista/musica;nome(album/author/music);
+response;details;album/artista/musica toString()
+
+#5 Escrever crítica a um álbum
+request;critic;nome_album;int pontuacao; string descricao_critica
+
+#6 Dar privilégios de editor a um utilizador
+request;non_editor_list
+response;non_editor_list;int n_users; String username[n_users]
+request;give_editor;username
+
+#7 Notiﬁcação imediata de privilégios de editor
+response;editor_perm;username
+
+#8 Notiﬁcação imediata de re-edição de descrição textual
+response;text_edit;album_name;int n_users; users[n_users]
+
+#11 Partilha de ﬁcheiros musicais
+request;uploaded_files;username
+response;uploaded_files;int n_files;String filename[n_files]
+request;share;filename;username
