@@ -8,6 +8,8 @@ request;register;int idade; String username; String password; String nome; int p
 response;register;bool sucesso
 request;login;String username; String password;
 response;login;bool sucesso;bool editor(sucesso = true);
+request;logout;username
+response;logout;true
 
 #2 Gerir artistas, álbuns e músicas
 request;edit;username;music;nome;letra;alteracao

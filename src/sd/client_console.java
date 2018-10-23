@@ -88,7 +88,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             }
                             case "0": {
                                 exit_state = true;
-                                client_console.unsubscribe(user_name);
                                 System.exit(1);
                                 return;
                             }
@@ -119,6 +118,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         }
                                     }
                                 }else{//logout--------------------
+                                    client_console.unsubscribe(user_name);
                                     logged = false;
                                     editor = false;
                                 }break;
