@@ -3,7 +3,7 @@ package Classes;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class user implements Serializable{
+public class user implements Serializable {
     private static final long serialVersionUID = 1L;
     public boolean online;
     private boolean editor;
@@ -15,22 +15,26 @@ public class user implements Serializable{
     private String address;
     private int num_cc;
     private ArrayList<playlist> playlists;
+    private ArrayList<String> notificacoes;
 
     public user(){
-
+        online = false;
+        playlists = new ArrayList<>();
+        notificacoes = new ArrayList<>();
     }
 
-    public user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc){
+    public user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc) {
         online = false;
         this.editor = editor;
         this.idade = idade;
-        this.username=username;
-        this.password=password;
-        this.nome=nome;
-        this.phone_num=phone_num;
-        this.address=address;
-        this.num_cc=num_cc;
+        this.username = username;
+        this.password = password;
+        this.nome = nome;
+        this.phone_num = phone_num;
+        this.address = address;
+        this.num_cc = num_cc;
         playlists = new ArrayList<>();
+        notificacoes = new ArrayList<>();
     }
 
     public boolean isOnline() {
@@ -49,61 +53,87 @@ public class user implements Serializable{
         return idade;
     }
 
+    public void addNotificacao(String notificacao){ notificacoes.add(notificacao); }
     public void setEditor(boolean editor) {
         this.editor = editor;
     }
+
     public void setIdade(int idade) {
         this.idade = idade;
     }
 
+    public ArrayList<String> getNotificacoes(){ return notificacoes; }
     public ArrayList<playlist> getPlaylists() {
         return playlists;
     }
+
     public void setPlaylists(ArrayList<playlist> playlists) {
         this.playlists = playlists;
     }
-    public String getUsername(){
+
+    public String getUsername() {
         return this.username;
     }
+
     public int getPhone_num() {
         return phone_num;
     }
-    public String getNome(){
+
+    public String getNome() {
         return nome;
     }
+
     public String getPassword() {
         return password;
     }
+
     public String getAddress() {
         return address;
     }
+
     public int getNum_cc() {
         return num_cc;
     }
+
     public void setAddress(String address) {
         this.address = address;
     }
+
     public void setNome(String nome) {
         this.nome = nome;
     }
+
     public void setNum_cc(int num_cc) {
         this.num_cc = num_cc;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
+
     public void setPhone_num(int phone_num) {
         this.phone_num = phone_num;
     }
+
     public void setUsername(String username) {
         this.username = username;
     }
-    public String pacote_String(){
+
+    public String pacote_String() {
         //int idade; String username; String password; String nome; int phone_num; String address; int num_cc
         return Integer.toString(idade) + ";" + username + ";" + password + ";" + nome + ";" + Integer.toString(phone_num) + ";" + address + ";" + Integer.toString(num_cc);
     }
+
     @Override
     public String toString() {
-        return "Username: " + nome + "\nEditor: " + (isEditor() ? "true" : "false") + "\n";
+        String ret = "Username: " + nome + "\nPassword: " + password + "\nOnline: " + online + "\nEditor: " + isEditor() + "\nIdade: " + idade +
+                "\nNome: " + nome + "\nTelemovel: " + phone_num + "\nMorada: " + address + "\nCC: " + num_cc + "\nPlaylist: \n";
+        for (playlist p : playlists) {
+            ret += "Músicas: \n";
+            for (music m : p.getMusicas()) {
+                ret += m.getNome() + "\n";
+            }
+        }
+        return ret;
     }
 }

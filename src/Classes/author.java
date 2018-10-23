@@ -94,6 +94,10 @@ public class author implements Serializable {
         for (album a : albuns) {
             ret += a.getNome() + "\n";
         }
+        ret += "Editores: \n";
+        for (String e : editores) {
+            ret += e + "\n";
+        }
         return ret;
     }
 }

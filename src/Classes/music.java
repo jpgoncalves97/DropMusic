@@ -59,7 +59,7 @@ public class music implements Serializable {
 
     @Override
     public String toString() {
-        String ret = "Nome: " + this.nome + "\nAutores: \n";
+        String ret = "Nome: " + this.nome + "\nPublico: " + publico + "\nAutores: \n";
         if (author != null){
             ret += author.getNome() + "\n";
         } else {
@@ -67,6 +67,11 @@ public class music implements Serializable {
                 ret += a.getNome() + "\n";
             }
         }
+        ret += "Users: \n";
+        for (String u : users){
+            ret += u + "\n";
+        }
+        ret += "Letra: \n" + lyrics;
         return ret;
     }
 }

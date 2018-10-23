@@ -1,7 +1,6 @@
 package sd;
 
 import Classes.*;
-import com.sun.xml.internal.ws.api.message.Packet;
 
 import java.io.*;
 import java.net.*;
@@ -20,11 +19,12 @@ class MulticastServer extends Thread implements Serializable {
     private final String albumPath = mainPath + "albuns";
     private final String authorPath = mainPath + "authors";
     private final String musicPath = mainPath + "music";
+    private final String bandPath = mainPath + "bands";
+
     private final String musicFilePath = mainPath + "musica";
     private HashMap<String, user> users;
     private ArrayList<author> authors;
     private ArrayList<album> albums;
-    private ArrayList<notificacao> notificacoes;
     private ArrayList<music> musicas;
     private ArrayList<File> fileMusicas;
     private LinkedList<String> requests;
@@ -43,93 +43,117 @@ class MulticastServer extends Thread implements Serializable {
             fileMusicas = new ArrayList<>(Arrays.asList(temp));
             listMusic();
         }
+        if (!(new File(userPath).exists()) ||
+                !(new File(albumPath).exists()) ||
+                !(new File(authorPath).exists()) ||
+                !(new File(musicPath).exists())) {
+            defaultFiles();
+        }
         requests = new LinkedList<>();
-        musicas = new ArrayList<>((ArrayList) readFromFile(musicPath));
+        musicas = new ArrayList<>(Arrays.asList((music[]) readFromFile(musicPath)));
         users = new HashMap<>(100);
         authors = new ArrayList<>(Arrays.asList((author[]) readFromFile(authorPath)));
         albums = new ArrayList<>(Arrays.asList((album[]) readFromFile(albumPath)));
-        notificacoes = new ArrayList<>();
         readUserFile();
-        for (music m : musicas) {
-            System.out.println(m.toString());
-        }
 
         socket = newMulticastSocket();
         newReceiverThread();
         newSenderThread();
-       /* author[] a = {new author("Eminem"), new author("Drake"), new author("Michael Jackson"),
+
+        listAllFiles();
+    }
+
+    public void defaultFiles(){
+        author[] a = {new author("Eminem"), new author("Drake"), new author("Michael Jackson"),
                 new author("Angus Young"), new author("Brian Johnson"), new author("Bon Scott"), new author("Axl Rose"),
                 new author("Roger Waters"), new author("David Gilmour"), new author("Syd Barrett"),
                 new author("Richard Wright"), new author("Nick Mason"), new author("Bob Klose"),
                 new author("Damon Albarn"), new author("Jamie Hewlett"), new author("Paul Simonon")};
         band[] b = {new band("AC/DC"), new band("Pink Floyd"), new band("Gorillaz")};
-        b[0].addAuthor(a[3]);
-        b[0].addAuthor(a[4]);
-        b[0].addAuthor(a[5]);
-        b[0].addAuthor(a[6]);
-        b[1].addAuthor(a[7]);
-        b[1].addAuthor(a[8]);
-        b[1].addAuthor(a[9]);
-        b[1].addAuthor(a[10]);
-        b[1].addAuthor(a[11]);
-        b[1].addAuthor(a[12]);
-        b[2].addAuthor(a[13]);
-        b[2].addAuthor(a[14]);
-        b[2].addAuthor(a[15]);
-        album[] al = {new album("Back in Black", "Rock", new Timestamp(1980, 7, 25, 0, 0, 0,0)),
-                new album("The Dark Side of The Moon", "Rock", new Timestamp(1973, 3, 1, 0, 0,0 ,0)),
-                new album("Kamikaze", "Hip-Hop", new Timestamp(2018, 8, 31, 0, 0,0 ,0)),
-                new album("Scorpion", "Hip-Hop", new Timestamp(2018, 6, 29, 0, 0,0, 0)),
-                new album("Thriller", "Pop", new Timestamp(1982, 11, 30, 0, 0,0,0)),
-                new album("Demon days", "Pop", new Timestamp(2015, 5, 11 , 0,0,0,0))};
-        //String nome, band b, boolean publico, album album, String lyrics, Timestamp timelenght)
-        musicas.add(new music("Any Colour You Like", b[1], true, al[1], ""));
-        musicas.add(new music("Back In Black", b[0], true, al[0], ""));
-        musicas.add(new music("Beat it", a[2], true, al[4], ""));
-        musicas.add(new music("Billie Jean", a[2], true, al[4], ""));
-        musicas.add(new music("Dare", b[2], true, al[5], ""));
-        musicas.add(new music("Dirty Harry", b[2], true, al[5], ""));
-        musicas.add(new music("Fall", a[0], true, al[2], ""));
-        musicas.add(new music("Gods Plan", a[1], true, al[3], ""));
-        musicas.add(new music("Have a drink on me", b[0], true, al[0], ""));
-        musicas.add(new music("In My Feelings", a[1], true, al[3], ""));
-        musicas.add(new music("Kamikaze", a[0], true, al[2], ""));
-        musicas.add(new music("Kids with guns", b[2], true, al[5], ""));
-        musicas.add(new music("Lucky You", a[0], true, al[2], ""));
-        musicas.add(new music("Money", b[1], true, al[1], ""));
-        musicas.add(new music("Thriller", a[2], true, al[4], ""));
-        musicas.add(new music("Us and Them", b[1], true, al[1], ""));
-        musicas.add(new music("You shook me all night long", b[0], true, al[0], ""));
-        al[0].addMusicas(musicas.get(1));
-        al[0].addMusicas(musicas.get(8));
-        al[0].addMusicas(musicas.get(16));
-        al[1].addMusicas(musicas.get(0));
-        al[1].addMusicas(musicas.get(13));
-        al[1].addMusicas(musicas.get(15));
-        al[2].addMusicas(musicas.get(6));
-        al[2].addMusicas(musicas.get(10));
-        al[2].addMusicas(musicas.get(12));
-        al[3].addMusicas(musicas.get(7));
-        al[3].addMusicas(musicas.get(9));
-        al[4].addMusicas(musicas.get(2));
-        al[4].addMusicas(musicas.get(3));
-        al[4].addMusicas(musicas.get(14));
-        al[5].addMusicas(musicas.get(4));
-        al[5].addMusicas(musicas.get(5));
-        al[5].addMusicas(musicas.get(11));
+        b[0].setAuthors(new ArrayList<>(Arrays.asList(a[3], a[4], a[5], a[6])));
+        b[1].setAuthors(new ArrayList<>(Arrays.asList(a[7], a[8], a[9], a[10], a[11], a[12])));
+        b[2].setAuthors(new ArrayList<>(Arrays.asList(a[13], a[14], a[15])));
+        @SuppressWarnings("dep-ann")
+        album[] al = {new album("Back in Black", "Rock", new Timestamp(1980, 7, 25, 0, 0, 0, 0)),
+                new album("The Dark Side of The Moon", "Rock", new Timestamp(1973, 3, 1, 0, 0, 0, 0)),
+                new album("Kamikaze", "Hip-Hop", new Timestamp(2018, 8, 31, 0, 0, 0, 0)),
+                new album("Scorpion", "Hip-Hop", new Timestamp(2018, 6, 29, 0, 0, 0, 0)),
+                new album("Thriller", "Pop", new Timestamp(1982, 11, 30, 0, 0, 0, 0)),
+                new album("Demon days", "Pop", new Timestamp(2015, 5, 11, 0, 0, 0, 0))};
         b[0].addAlbum(al[0]);
         b[1].addAlbum(al[1]);
         b[2].addAlbum(al[5]);
+        //String nome, band b, boolean publico, album album, String lyrics, Timestamp timelenght)
+        music[] m = {new music("Any Colour You Like", b[1], true, al[1], ""),
+                new music("Back In Black", b[0], true, al[0], ""),
+                new music("Beat it", a[2], true, al[4], ""),
+                new music("Billie Jean", a[2], true, al[4], ""),
+                new music("Dare", b[2], true, al[5], ""),
+                new music("Dirty Harry", b[2], true, al[5], ""),
+                new music("Fall", a[0], true, al[2], ""),
+                new music("Gods Plan", a[1], true, al[3], ""),
+                new music("Have a drink on me", b[0], true, al[0], ""),
+                new music("In My Feelings", a[1], true, al[3], ""),
+                new music("Kamikaze", a[0], true, al[2], ""),
+                new music("Kids with guns", b[2], true, al[5], ""),
+                new music("Lucky You", a[0], true, al[2], ""),
+                new music("Money", b[1], true, al[1], ""),
+                new music("Thriller", a[2], true, al[4], ""),
+                new music("Us and Them", b[1], true, al[1], ""),
+                new music("You shook me all night long", b[0], true, al[0], "")};
+        al[0].addMusicas(m[1]);
+        al[0].addMusicas(m[8]);
+        al[0].addMusicas(m[16]);
+        al[1].addMusicas(m[0]);
+        al[1].addMusicas(m[13]);
+        al[1].addMusicas(m[15]);
+        al[2].addMusicas(m[6]);
+        al[2].addMusicas(m[10]);
+        al[2].addMusicas(m[12]);
+        al[3].addMusicas(m[7]);
+        al[3].addMusicas(m[9]);
+        al[4].addMusicas(m[2]);
+        al[4].addMusicas(m[3]);
+        al[4].addMusicas(m[14]);
+        al[5].addMusicas(m[4]);
+        al[5].addMusicas(m[5]);
+        al[5].addMusicas(m[11]);
         a[0].addAlbum(al[2]);
         a[1].addAlbum(al[3]);
         a[2].addAlbum(al[4]);
+        al[0].setAuthors(b[0].getAuthors());
+        al[1].setAuthors(b[1].getAuthors());
+        al[2].setAuthors(new ArrayList<>(Arrays.asList(a[0])));
+        al[3].setAuthors(new ArrayList<>(Arrays.asList(a[1])));
+        al[4].setAuthors(new ArrayList<>(Arrays.asList(a[2])));
+        al[5].setAuthors(b[2].getAuthors());
         writeToFile(albumPath, al);
-        writeToFile(musicPath, musicas);
+        writeToFile(musicPath, m);
         writeToFile(authorPath, a);
-        writeToFile(mainPath + "bands", b);*/
-       for (String key : users.keySet()){
-           users.get(key).setOnline(false);
-       }
+        writeToFile(bandPath, b);
+    }
+    public void listAllFiles() {
+        System.out.println("Users: ");
+        for (String user : users.keySet()) {
+            System.out.println(users.get(user).toString());
+        }
+        System.out.println("Músicas: ");
+        for (music m : musicas) {
+            System.out.println(m.toString());
+        }
+        System.out.println("Artistas: ");
+        for (author a : authors) {
+            System.out.println(a.toString());
+        }
+        System.out.println("Albuns: ");
+        for (album a : albums) {
+            System.out.println(a.toString());
+        }
+        System.out.println("Bandas: ");
+        band[] b = (band [])readFromFile(bandPath);
+        for (int i = 0; i < b.length; i++){
+            System.out.println(b[i].toString());
+        }
     }
 
     public static void main(String[] args) {
@@ -159,15 +183,23 @@ class MulticastServer extends Thread implements Serializable {
             fis.close();
             ois.close();
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("Error reading from file: " + e);
             return null;
         }
         return o;
     }
 
-    public void writeToFile(String mainPath, Object o) {
+    public void writeToFile(String path, Object o) {
+        File f = new File(path);
+        if (!f.exists()){
+            try {
+                f.createNewFile();
+            } catch (IOException e){
+                System.out.println("Error creating file: " + e);
+            }
+        }
         try {
-            FileOutputStream fos = new FileOutputStream(new File(mainPath));
+            FileOutputStream fos = new FileOutputStream(f);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(o);
             fos.close();
@@ -286,15 +318,9 @@ class MulticastServer extends Thread implements Serializable {
     }
 
     public void sendNotifications(user u) {
-        Iterator<notificacao> it = notificacoes.iterator();
+        Iterator<String> it = u.getNotificacoes().iterator();
         while (it.hasNext()) {
-            notificacao n = it.next();
-            System.out.println(n.getUsername());
-            System.out.println(n.getMensagem());
-            if (n.getUsername().equals(u.getUsername())) {
-                System.out.println("Sending notification: " + n.getMensagem());
-                sendString(socket, n.getMensagem());
-            }
+            MulticastServer.sendString(socket, it.next());
             it.remove();
         }
     }
@@ -354,10 +380,10 @@ class MulticastServer extends Thread implements Serializable {
                                                     user u2 = users.get(username);
                                                     String n = id + ";response;notification;" + username +
                                                             ";Foi alterada a descricao do artista " + a.getNome();
-                                                    if (u2.isOnline()){
+                                                    if (u2.isOnline()) {
                                                         sendString(socket, n);
                                                     } else {
-                                                        notificacoes.add(new notificacao(username, n));
+                                                        u2.addNotificacao(n);
                                                     }
                                                 }
                                                 break;
@@ -495,7 +521,7 @@ class MulticastServer extends Thread implements Serializable {
                         if (users.get(msg[3]).isOnline()) {
                             sendString(socket, notificacao);
                         } else {
-                            notificacoes.add(new notificacao(msg[3], notificacao));
+                            users.get(msg[3]).addNotificacao(notificacao);
                         }
                     case "user_list":
                         for (String key : users.keySet()) {

@@ -41,6 +41,15 @@ public class band implements Serializable{
 
     @Override
     public String toString() {
-        return super.toString();
+        String ret = "Nome: " + nome + "\n";
+        ret += "Artistas: " + "\n";
+        for (author a : authors){
+            ret += a.getNome() + "\n";
+        }
+        ret += "Albuns: " + "\n";
+        for (album a : albuns){
+            ret += a.getNome() + "\n";
+        }
+        return ret;
     }
 }
