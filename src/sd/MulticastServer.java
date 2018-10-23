@@ -14,7 +14,7 @@ class MulticastServer extends Thread implements Serializable {
     protected static int TCP_PORT = 1234;
     private MulticastSocket socket;
     private final String id = Long.toString(System.currentTimeMillis());
-    private final String mainPath = "C:/Users/j/Desktop/multicast/";
+    private final String mainPath = "C:/multicast/";
     private final String userPath = mainPath + "users";
     private final String albumPath = mainPath + "albuns";
     private final String authorPath = mainPath + "authors";
