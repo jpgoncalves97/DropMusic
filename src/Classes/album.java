@@ -93,7 +93,7 @@ public class album implements Serializable {
 
     @Override
     public String toString() {
-        String ret = "Nome: " + nome + "\n";
+        String ret = "Nome: " + nome + "\nGenero: " + genero + "\n";
         for (music m : musicas){
             ret += m.getNome() + "\n";
         }
