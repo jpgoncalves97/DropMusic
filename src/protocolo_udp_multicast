@@ -10,12 +10,12 @@ request;login;String username; String password;
 response;login;bool sucesso;bool editor(sucesso = true);
 
 #2 Gerir artistas, álbuns e músicas
-request;edit;music;nome;letra;alteracao
-request;edit;music;nome;nome;alteracao
-request;edit;author;nome;alteracao
-request;edit;album;nome;nome;alteracao
-request;edit;album;nome;genero;alteracao
-request;edit;album;nome;descricao;alteracao
+request;edit;username;music;nome;letra;alteracao
+request;edit;username;music;nome;nome;alteracao
+request;edit;username;author;nome;alteracao
+request;edit;username;album;nome;nome;alteracao
+request;edit;username;album;nome;genero;alteracao
+request;edit;username;album;nome;descricao;alteracao
 
 #3 Pesquisar músicas
 request;music_search;username;artista/genero_musical/album;String informacao

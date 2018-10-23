@@ -14,22 +14,9 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.concurrent.ThreadLocalRandom;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.rmi.*;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class rmi_server extends UnicastRemoteObject implements rmi_interface_client {
@@ -38,11 +25,31 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     private ArrayList<client_interface> clientes = new ArrayList<>();
     private ArrayList<String> usernames = new ArrayList<>();
 
+    public class SharedMessage {
+        private String msg;
+
+        SharedMessage() {
+            msg = "";
+        }
+
+        public void setMsg(String msg) {
+            this.msg = msg;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
+
+        public boolean isNull() {
+            return msg.equals("");
+        }
+
+    }
+
     private rmi_server() throws RemoteException, ParseException {
         test_var = 0;
         socket = MulticastServer.newMulticastSocket();
-        SharedMessage msg = new SharedMessage();
-        new MulticastSenderThread(socket, msg, new Runnable() {
+        new Thread(new Runnable() {
             public void run() {
                 Scanner sc = new Scanner(System.in);
                 while (true) {
@@ -65,7 +72,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                 }
 
             }
-        });
+        }).start();
 
     }
 
@@ -86,12 +93,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
     public ArrayList getServerIds() {
-        try {
-            MulticastServer.sendString(socket, new String("0;request;server_id"));
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-
+        MulticastServer.sendString(socket, new String("0;request;server_id"));
         ArrayList<String> ids = new ArrayList<>();
         try {
             socket.setSoTimeout(1000);
@@ -116,11 +118,11 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     public boolean test(String username) throws RemoteException {
 
         System.out.println("testing notify");
-        try{
+        try {
             int index = usernames.indexOf(username);
             System.out.println(index);
             clientes.get(usernames.indexOf(username)).notify_client("notify test to " + username);
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Exception in main: " + e);
         }
         return true;
@@ -135,9 +137,9 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             usernames.remove(index);
         }
     }
-
+    
     @Override
-    public void subscribe(String username, client_interface c) throws RemoteException{
+    public void subscribe(String username, client_interface c) throws RemoteException {
         System.out.println("new client");
         this.clientes.add(c);
         this.usernames.add(username);
@@ -147,12 +149,12 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     @Override
     public boolean send_all_return_bool(String newuser) {
 
-        SharedMessage msg = new SharedMessage();
-        new MulticastSenderThread(socket, msg, new Runnable() {
+        final SharedMessage msg = new SharedMessage();
+        new Thread(new Runnable() {
             public void run() {
                 try {
                     System.out.println("Sending to all");
-                    MulticastServer.sendString(socket, "0;request;register;"+ newuser);
+                    MulticastServer.sendString(socket, "0;request;register;" + newuser);
                     System.out.println(newuser);
                     String response;
                     do {
@@ -161,7 +163,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     } while (response.contains("request"));
                     System.out.println("Received: " + response);
 
-                    synchronized (msg){
+                    synchronized (msg) {
                         msg.setMsg(response);
                         msg.notify();
                     }
@@ -173,11 +175,10 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }).start();
 
         synchronized (msg) {
-            if(msg.isNull()){
+            if (msg.isNull()) {
                 try {
                     msg.wait();
-                }
-                catch(InterruptedException e ){
+                } catch (InterruptedException e) {
                     System.out.println("erro");
                 }
             }
@@ -197,7 +198,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     public int login(String username, String password) throws RemoteException {
         System.out.println("LOGIN");
         SharedMessage msg = new SharedMessage();
-        new MulticastSenderThread(socket, msg, new Runnable() {
+        new Thread(new Runnable() {
             public void run() {
                 try {
                     ArrayList<String> ids = getServerIds();
@@ -211,7 +212,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     } while (response.contains("request"));
                     System.out.println("Received: " + response);
 
-                    synchronized (msg){
+                    synchronized (msg) {
                         msg.setMsg(response);
                         msg.notify();
                     }
@@ -223,11 +224,10 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }).start();
 
         synchronized (msg) {
-            if(msg.isNull()){
+            if (msg.isNull()) {
                 try {
                     msg.wait();
-                }
-                catch(InterruptedException e ){
+                } catch (InterruptedException e) {
                     System.out.println("erro");
                 }
             }
@@ -236,7 +236,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             if (temp[3].equals("false")) {
                 return 0;
             } else {
-                if(temp[4].equals("true")) return 11;
+                if (temp[4].equals("true")) return 11;
                 else return 10;
 
             }
@@ -245,10 +245,10 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
 
-    public String send_all_return_str(String str){
+    public String send_all_return_str(String str) {
 
         SharedMessage msg = new SharedMessage();
-        new MulticastSenderThread(socket, msg, new Runnable() {
+        new Thread(new Runnable() {
             public void run() {
                 try {
                     ArrayList<String> ids = getServerIds();
@@ -263,7 +263,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     } while (!response.contains("rmi"));
                     System.out.println("Received: " + response);
 
-                    synchronized (msg){
+                    synchronized (msg) {
                         msg.setMsg(response);
                         msg.notify();
                     }

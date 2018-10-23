@@ -12,7 +12,7 @@ public class author implements Serializable {
     private String descricao;
     private ArrayList<String> editores;
 
-    public author(String nome){
+    public author(String nome) {
         this.nome = nome;
         this.band = null;
         this.singles = new ArrayList<>();
@@ -21,7 +21,7 @@ public class author implements Serializable {
         editores = new ArrayList<>();
     }
 
-    public author(String nome, band band){
+    public author(String nome, band band) {
         this.nome = nome;
         this.band = band;
         this.singles = new ArrayList<>();
@@ -31,34 +31,69 @@ public class author implements Serializable {
 
     }
 
-    public void setDescricao(String descricao, String user){
+    public void setDescricao(String descricao, String user) {
         this.descricao = descricao;
-        for (String s : editores){
+        for (String s : editores) {
             if (s.equals(user)) return;
         }
         editores.add(user);
     }
 
-    public String getNome(){ return nome; }
-    public band getBand() { return band; }
+    public String getNome() {
+        return nome;
+    }
+
+    public band getBand() {
+        return band;
+    }
+
     public ArrayList<album> getAlbuns() {
         return albuns;
     }
+
     public ArrayList<music> getSingles() {
         return singles;
     }
-    public void setNome(String nome){ this.nome = nome; }
-    public void setBand(band band) { this.band = band; }
+
+    public ArrayList<String> getEditores() {
+        return editores;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setBand(band band) {
+        this.band = band;
+    }
+
     public void setAlbuns(ArrayList<album> albuns) {
         this.albuns = albuns;
     }
+
     public void setSingles(ArrayList<music> singles) {
         this.singles = singles;
     }
-    public void addAlbum(album a) { albuns.add(a); }
+
+    public void addAlbum(album a) {
+        albuns.add(a);
+    }
 
     @Override
     public String toString() {
-        return super.toString();
+        String ret = "Nome: " + nome;
+        if (band != null) {
+            ret += "\nBanda: " + band.getNome();
+        }
+        ret += "\nDescricao: " + descricao;
+        ret += "\nSingles: " + "\n";
+        for (music m : singles) {
+            ret += m.getNome() + "\n";
+        }
+        ret += "Albuns: \n";
+        for (album a : albuns) {
+            ret += a.getNome() + "\n";
+        }
+        return ret;
     }
 }

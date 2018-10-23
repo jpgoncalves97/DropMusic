@@ -1,9 +1,11 @@
 package sd;
 
 import Classes.*;
+import com.sun.xml.internal.ws.api.message.Packet;
 
 import java.io.*;
 import java.net.*;
+import java.sql.Timestamp;
 import java.util.*;
 
 class MulticastServer extends Thread implements Serializable {
@@ -55,7 +57,7 @@ class MulticastServer extends Thread implements Serializable {
         socket = newMulticastSocket();
         newReceiverThread();
         newSenderThread();
-        /*author[] a = {new author("Eminem"), new author("Drake"), new author("Michael Jackson"),
+       /* author[] a = {new author("Eminem"), new author("Drake"), new author("Michael Jackson"),
                 new author("Angus Young"), new author("Brian Johnson"), new author("Bon Scott"), new author("Axl Rose"),
                 new author("Roger Waters"), new author("David Gilmour"), new author("Syd Barrett"),
                 new author("Richard Wright"), new author("Nick Mason"), new author("Bob Klose"),
@@ -125,6 +127,9 @@ class MulticastServer extends Thread implements Serializable {
         writeToFile(musicPath, musicas);
         writeToFile(authorPath, a);
         writeToFile(mainPath + "bands", b);*/
+       for (String key : users.keySet()){
+           users.get(key).setOnline(false);
+       }
     }
 
     public static void main(String[] args) {
@@ -281,10 +286,16 @@ class MulticastServer extends Thread implements Serializable {
     }
 
     public void sendNotifications(user u) {
-        for (notificacao n : notificacoes) {
+        Iterator<notificacao> it = notificacoes.iterator();
+        while (it.hasNext()) {
+            notificacao n = it.next();
+            System.out.println(n.getUsername());
+            System.out.println(n.getMensagem());
             if (n.getUsername().equals(u.getUsername())) {
+                System.out.println("Sending notification: " + n.getMensagem());
                 sendString(socket, n.getMensagem());
             }
+            it.remove();
         }
     }
 
@@ -300,51 +311,58 @@ class MulticastServer extends Thread implements Serializable {
                         //user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc)
                         user u = new user(false, Integer.parseInt(msg[3]), msg[4], msg[5], msg[6], Integer.parseInt(msg[7]), msg[8], Integer.parseInt(msg[9]));
                         u.setOnline(true);
+                        sendString(socket, id + ";" + (registerUser(u) ? "response;register;true" : "response;register;false"));
                         sendNotifications(u);
-                        sendString(socket, registerUser(u) ? "response;register;true" : "response;register;false");
                         return;
                     case "login":
                         System.out.println("Login request");
                         user u1 = users.get(msg[3]);
                         if (u1 == null || !u1.getPassword().equals(msg[4])) {
-                            sendString(socket, "response;login;false;false");
+                            sendString(socket, id + ";response;login;false;false");
                         } else {
                             u1.setOnline(true);
+                            sendString(socket, id + ";response;login;true;" + (u1.isEditor() ? "true" : "false"));
                             sendNotifications(u1);
                         }
-                        sendString(socket, "response;login;true;" + (u1.isEditor() ? "true" : "false"));
                         return;
                     case "edit":
-                        switch (msg[3]) {
+                        switch (msg[4]) {
                             case "music":
                                 for (music m : musicas) {
-                                    if (m.getNome().equals(msg[4])) {
-                                        switch (msg[5]) {
+                                    if (m.getNome().equals(msg[5])) {
+                                        switch (msg[6]) {
                                             case "letra":
-                                                m.setLyrics(msg[6]);
+                                                m.setLyrics(msg[7]);
                                                 break;
                                             case "nome":
-                                                m.setNome(msg[6]);
+                                                m.setNome(msg[7]);
+                                                break;
                                         }
                                         return;
                                     }
                                 }
                             case "author":
-                                switch (msg[5]) {
-                                    case "nome":
-                                        for (author a : authors) {
-                                            if (a.getNome().equals(msg[4])) {
-                                                a.setNome(msg[5]);
+                                for (author a : authors) {
+                                    if (a.getNome().equals(msg[5])) {
+                                        switch (msg[6]) {
+                                            case "nome":
+                                                a.setNome(msg[7]);
                                                 return;
-                                            }
+                                            case "descricao":
+                                                a.setDescricao(msg[7], msg[3]);
+                                                for (String username : a.getEditores()) {
+                                                    user u2 = users.get(username);
+                                                    String n = id + ";response;notification;" + username +
+                                                            ";Foi alterada a descricao do artista " + a.getNome();
+                                                    if (u2.isOnline()){
+                                                        sendString(socket, n);
+                                                    } else {
+                                                        notificacoes.add(new notificacao(username, n));
+                                                    }
+                                                }
+                                                break;
                                         }
-                                    case "descricao":
-                                        for (author a : authors) {
-                                            if (a.getNome().equals(msg[4])) {
-                                                a.setNome(msg[5]);
-                                                return;
-                                            }
-                                        }
+                                    }
                                 }
                             case "album":
                                 for (album a : albums) {
@@ -357,7 +375,11 @@ class MulticastServer extends Thread implements Serializable {
                                                 a.setGenero(msg[6]);
                                                 break;
                                             case "descricao":
-                                                a.setDescricao(msg[6]);
+                                                a.setDescricao(msg[6], msg[4]);
+                                                for (String username : users.keySet()) {
+                                                    sendNotifications(users.get(username));
+                                                }
+                                                break;
                                         }
                                         return;
                                     }
@@ -385,7 +407,7 @@ class MulticastServer extends Thread implements Serializable {
                                         }
                                     }
                                 }
-                                String ret = "response;music_search;" + resposta.size() + ";";
+                                String ret = id + ";response;music_search;" + resposta.size() + ";";
                                 for (String s : resposta) {
                                     ret += s + ";";
                                 }
@@ -402,7 +424,7 @@ class MulticastServer extends Thread implements Serializable {
                                         }
                                     }
                                 }
-                                String ret = "response;music_search;" + resposta.size() + ";";
+                                String ret = id + ";response;music_search;" + resposta.size() + ";";
                                 for (String s : resposta) {
                                     ret += s + ";";
                                 }
@@ -419,7 +441,7 @@ class MulticastServer extends Thread implements Serializable {
                                             }
                                             resposta.add(m.getNome());
                                         }
-                                        String ret = "response;music_search;" + resposta.size() + ";";
+                                        String ret = id + ";response;music_search;" + resposta.size() + ";";
                                         for (String s : resposta) {
                                             ret += s + ";";
                                         }
@@ -427,7 +449,7 @@ class MulticastServer extends Thread implements Serializable {
                                         return;
                                     }
                                 }
-                                String ret = "response;music_search;" + resposta.size() + ";";
+                                String ret = id + ";response;music_search;" + resposta.size() + ";";
                                 for (String s : resposta) {
                                     ret += s + ";";
                                 }
@@ -440,21 +462,21 @@ class MulticastServer extends Thread implements Serializable {
                             case "album":
                                 for (album a : albums) {
                                     if (a.getNome().equals(msg[4])) {
-                                        sendString(socket, id + ";" + a.toString());
+                                        sendString(socket, id + ";response;details;" + a.toString());
                                         return;
                                     }
                                 }
                             case "artista":
                                 for (author a : authors) {
                                     if (a.getNome().equals(msg[4])) {
-                                        sendString(socket, a.toString());
+                                        sendString(socket, id + ";response;details;" + a.toString());
                                         return;
                                     }
                                 }
                             case "musica":
                                 for (music m : musicas) {
                                     if (m.getNome().equals(msg[4])) {
-                                        sendString(socket, m.toString());
+                                        sendString(socket, id + ";response;details;" + m.toString());
                                         return;
                                     }
                                 }
@@ -467,12 +489,18 @@ class MulticastServer extends Thread implements Serializable {
                             }
                         }
                     case "give_editor":
+                        System.out.println("giving editor\n" + msg[3] + " " + users.get(msg[3]).isOnline());
                         users.get(msg[3]).setEditor(true);
-                        String notificacao = "response;notification;" + msg[3] + ";Obteve privilégios de editor";
+                        String notificacao = id + ";response;notification;" + msg[3] + ";Obteve privilégios de editor";
                         if (users.get(msg[3]).isOnline()) {
                             sendString(socket, notificacao);
                         } else {
                             notificacoes.add(new notificacao(msg[3], notificacao));
+                        }
+                    case "user_list":
+                        for (String key : users.keySet()) {
+                            System.out.println(key);
+                            System.out.println(users.get(key).isEditor());
                         }
                 }
             }
@@ -537,7 +565,7 @@ class MulticastServer extends Thread implements Serializable {
                                 System.out.println("Thread interrompida: " + e);
                             }
                         }
-                        request = id + ";" + requests.getFirst();
+                        request = requests.getFirst();
                         requests.removeFirst();
                     }
                     decodeMessage(request.split(";"));

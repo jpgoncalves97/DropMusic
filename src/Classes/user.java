@@ -37,7 +37,7 @@ public class user implements Serializable{
         return online;
     }
 
-    public void setOnline(boolean online_state) {
+    public void setOnline(boolean online) {
         this.online = online;
     }
 
