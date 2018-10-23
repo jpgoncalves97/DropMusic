@@ -341,7 +341,6 @@ class MulticastServer extends Thread implements Serializable {
                         sendNotifications(u);
                         return;
                     case "login":
-                        System.out.println("Login request");
                         user u1 = users.get(msg[3]);
                         if (u1 == null || !u1.getPassword().equals(msg[4])) {
                             sendString(socket, id + ";response;login;false;false");
@@ -350,6 +349,9 @@ class MulticastServer extends Thread implements Serializable {
                             sendString(socket, id + ";response;login;true;" + (u1.isEditor() ? "true" : "false"));
                             sendNotifications(u1);
                         }
+                        return;
+                    case "logout":
+                        users.get(msg[3]).setOnline(false);
                         return;
                     case "edit":
                         switch (msg[4]) {
