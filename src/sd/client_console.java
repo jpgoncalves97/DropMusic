@@ -84,7 +84,9 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             }
                             case "0": {
                                 exit_state = true;
-                                break;
+                                client_console.unsubscribe(user_name);
+                                System.exit(1);
+                                return;
                             }
 
                             case "1": {//login--------------
@@ -202,9 +204,14 @@ public class client_console extends UnicastRemoteObject implements client_interf
             }
         }).start();
 
+
+
         while (true) {
+
             if(exit_state == true){
+                System.out.println("saindo");
                 System.exit(1);
+                return;
             }
         }
     }

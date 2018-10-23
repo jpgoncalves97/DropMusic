@@ -16,6 +16,8 @@ public interface rmi_interface_client extends Remote {
 
     int login(String username, String password) throws RemoteException;
 
+    void unsubscribe(String user) throws RemoteException;
+
     void subscribe(String name, client_interface client) throws RemoteException;
 
     boolean send_all_return_bool(String str) throws RemoteException;
