@@ -34,6 +34,14 @@ public class music implements Serializable {
     }
 
     public void addUser(String user){ users.add(user); }
+    public boolean canGetMusic(String user){
+        if (publico) return true;
+        for (String u : users){
+            if (u.equals(user))
+                return true;
+        }
+        return false;
+    }
 
     public album getAlbum() { return album; }
     public ArrayList<String> getUsers() { return users; }

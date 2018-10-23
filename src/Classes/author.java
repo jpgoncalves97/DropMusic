@@ -9,12 +9,16 @@ public class author implements Serializable {
     private String nome;
     private ArrayList<music> singles;
     private ArrayList<album> albuns;
+    private String descricao;
+    private ArrayList<String> editores;
 
     public author(String nome){
         this.nome = nome;
         this.band = null;
         this.singles = new ArrayList<>();
         this.albuns = new ArrayList<>();
+        descricao = "";
+        editores = new ArrayList<>();
     }
 
     public author(String nome, band band){
@@ -22,6 +26,17 @@ public class author implements Serializable {
         this.band = band;
         this.singles = new ArrayList<>();
         this.albuns = new ArrayList<>();
+        descricao = "";
+        editores = new ArrayList<>();
+
+    }
+
+    public void setDescricao(String descricao, String user){
+        this.descricao = descricao;
+        for (String s : editores){
+            if (s.equals(user)) return;
+        }
+        editores.add(user);
     }
 
     public String getNome(){ return nome; }

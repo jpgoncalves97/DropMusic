@@ -12,7 +12,7 @@ public class album implements Serializable {
     private ArrayList<author> authors;
     private String genero;
     private String descricao;
-    private ArrayList<String> editoresDescricao;
+    private ArrayList<String> editores;
     private Timestamp launchDate;
 
     public album(String nome, String genero, Timestamp launchDate){
@@ -20,11 +20,19 @@ public class album implements Serializable {
         this.launchDate = launchDate;
         this.genero = genero;
         this.descricao = "";
-        this.editoresDescricao = new ArrayList<>();
+        this.editores = new ArrayList<>();
         this.musicas = new ArrayList<>();
         this.authors = new ArrayList<>();
         this.criticas = new ArrayList<>();
         this.launchDate = launchDate;
+    }
+
+    public void setDescricao(String descricao, String user){
+        this.descricao = descricao;
+        for (String s : editores){
+            if (s.equals(user)) return;
+        }
+        editores.add(user);
     }
 
     public ArrayList<critica> getCriticas() {
@@ -77,6 +85,10 @@ public class album implements Serializable {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 
     @Override
