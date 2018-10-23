@@ -55,7 +55,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             System.out.println("2 -> registar utilizadores");
                         }
                         else{
-                            System.out.println("0 -> sair");
+                            System.out.println("0 -> sair e desligar cliente");
                             System.out.println("1 -> desconectar-se");
                             System.out.println("2 -> procurar musicas");//a partir d dados paciais, para mostrar so os detalhes da musica
                             System.out.println("3 -> procurar detalhes de albuns");//same
@@ -73,6 +73,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                         }
                         input = scan.nextLine();
                         switch (input) {
+                            case "-2":{
+                                System.out.println(client_console.get_online_clients());
+                                break;
+                            }
                             case "-1":{
                                 try{
                                     client_console.sendMsg(user_name, "test notification");
@@ -103,11 +107,11 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         System.out.println("Nao entrou!");
                                     }
                                     else{
-                                        System.out.println("subscripting");
+                                        //System.out.println("subscribed");
                                         client_console c = new client_console();
-                                        System.out.println("cp");
+                                        //System.out.println("cp");
                                         client_console.subscribe(user_name, c);
-                                        System.out.println("sent subscription to server");
+                                        //System.out.println("sent subscription to server");
                                         logged = true;
                                         System.out.println("Entrou!");
                                         if(temp%10 == 1){
@@ -151,9 +155,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     boolean status = false;
                                     String str = newuser.pacote_String();
                                     try {
-                                        System.out.println("trying to comunicate with rmi");
+                                        //System.out.println("trying to comunicate with rmi");
+                                        str = "request;register;"+str;
                                         status = client_console.send_all_return_bool(str);
-                                        System.out.println("Registo com sucesso!");
+                                        //System.out.println("Registo com sucesso!");
 
                                     } catch (RemoteException ex) {
                                         Logger.getLogger(client_console.class.getName()).log(Level.SEVERE, null, ex);
@@ -174,16 +179,15 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         System.out.println("erro");
                                         break;
                                     }
-                                    scan.nextLine();
                                     System.out.println("escreva aqui:");
                                     String str = new String ("request;music_search;"+user_name+";"+search+";"+scan.nextLine());
                                     System.out.println("sent>> "+ str);
-                                    String arr[] = (client_console.send_all_return_str(str)).split(";");
+
+                                    String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                    System.out.println("cp");
                                     for(int i = 0; i<Integer.parseInt(arr[3]);i++){
                                         System.out.println(i+arr[3+i]);
                                     }
-                                    System.out.println("clique em qualquer tecla para avançar");
-                                    scan.nextLine();
                                 }break;
                             }
                             case "3":{//detalhes de albuns---------------

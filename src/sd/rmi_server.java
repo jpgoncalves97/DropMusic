@@ -146,15 +146,15 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
 
     //#1
     @Override
-    public boolean send_all_return_bool(String newuser) {
-
+    public boolean send_all_return_bool(String str) {
+        System.out.println("SEND ALL RETURN BOOL");
         final SharedMessage msg = new SharedMessage();
         new Thread(new Runnable() {
             public void run() {
                 try {
                     System.out.println("Sending to all");
-                    MulticastServer.sendString(socket, "0;request;register;" + newuser);
-                    System.out.println(newuser);
+                    MulticastServer.sendString(socket, "0;" + str);
+                    System.out.println(str);
                     String response;
                     do {
                         response = MulticastServer.receiveString(socket);
@@ -181,10 +181,9 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     System.out.println("erro");
                 }
             }
-            String str = msg.getMsg();
-            System.out.println(str);
-            if (str.contains("true")) {
-
+            String str1 = msg.getMsg();
+            System.out.println(str1);
+            if (str1.contains("true")) {
                 return true;
             } else {
                 return false;
@@ -243,23 +242,31 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }
     }
 
+    @Override
+    public String get_online_clients(){
+        String str = "";
+        for(int i = 0 ; i < usernames.size();i++){
+            str += usernames.get(i) + ";";
+        }
+        return str;
+    }
 
     public String send_all_return_str(String str) {
-
+        System.out.println("SEND ALL RETURN STR");
         SharedMessage msg = new SharedMessage();
         new Thread(new Runnable() {
             public void run() {
                 try {
                     ArrayList<String> ids = getServerIds();
                     String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
-                    System.out.println("Sending to id: " + id);
+                    System.out.println("Sending to all");
 
-                    MulticastServer.sendString(socket,  "request;" + str);
+                    MulticastServer.sendString(socket,  "0;" + str);
                     String response;
                     do {
                         response = MulticastServer.receiveString(socket);
                         System.out.println(response);
-                    } while (!response.contains("rmi"));
+                    } while (response.contains("request"));
                     System.out.println("Received: " + response);
 
                     synchronized (msg) {
@@ -273,6 +280,11 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             }
         }).start();
 
+        return getString(msg);
+
+    }
+
+    private String getString(SharedMessage msg) {
         synchronized (msg) {
             if (msg.isNull()) {
                 try {
@@ -283,7 +295,38 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             }
             return msg.getMsg();
         }
+    }
 
+    public String send_one_return_str(String str){
+        System.out.println("SEND ONE RETURN STR");
+        SharedMessage msg = new SharedMessage();
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    ArrayList<String> ids = getServerIds();
+                    String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
+                    System.out.println("Sending to id: " + id);
+
+                    MulticastServer.sendString(socket, id + ";" + str);
+                    String response;
+                    do {
+                        response = MulticastServer.receiveString(socket);
+                        System.out.println(response);
+                    } while (response.contains("request"));
+                    System.out.println("Received: " + response);
+
+                    synchronized (msg) {
+                        msg.setMsg(response);
+                        msg.notify();
+                    }
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+        }).start();
+
+        return getString(msg);
     }
 
 }

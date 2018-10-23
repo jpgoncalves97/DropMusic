@@ -24,5 +24,9 @@ public interface rmi_interface_client extends Remote {
 
     String send_all_return_str(String str) throws RemoteException;
 
+    String get_online_clients() throws RemoteException;
+
+    String send_one_return_str(String str) throws RemoteException;
+
 
 }
