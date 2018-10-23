@@ -32,9 +32,6 @@ class MulticastServer extends Thread implements Serializable {
         System.out.println("Server id# " + id);
 
         // TCPHandler(TCP_PORT);
-        socket = newMulticastSocket();
-        newReceiverThread();
-        newSenderThread();
 
         File[] temp = new File(musicFilePath).listFiles();
         System.out.println("Musicas");
@@ -55,6 +52,9 @@ class MulticastServer extends Thread implements Serializable {
             System.out.println(m.toString());
         }
 
+        socket = newMulticastSocket();
+        newReceiverThread();
+        newSenderThread();
         /*author[] a = {new author("Eminem"), new author("Drake"), new author("Michael Jackson"),
                 new author("Angus Young"), new author("Brian Johnson"), new author("Bon Scott"), new author("Axl Rose"),
                 new author("Roger Waters"), new author("David Gilmour"), new author("Syd Barrett"),
@@ -294,7 +294,7 @@ class MulticastServer extends Thread implements Serializable {
             if (msg[1].equals("request")) {
                 switch (msg[2]) {
                     case "server_id":
-                        sendString(socket, "response;server_id;" + id);
+                        sendString(socket, id + ";" + "response;server_id;");
                         return;
                     case "register":
                         //user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc)
@@ -440,7 +440,7 @@ class MulticastServer extends Thread implements Serializable {
                             case "album":
                                 for (album a : albums) {
                                     if (a.getNome().equals(msg[4])) {
-                                        sendString(socket, a.toString());
+                                        sendString(socket, id + ";" + a.toString());
                                         return;
                                     }
                                 }
