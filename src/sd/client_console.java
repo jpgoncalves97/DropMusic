@@ -50,14 +50,14 @@ public class client_console extends UnicastRemoteObject implements client_interf
                     System.out.flush();
                     try {
                         if (!logged) {
-                            System.out.println("0 -> sair");
-                            System.out.println("1 -> logar");
-                            System.out.println("2 -> registar utilizadores");
+                            System.out.println("0 -> -sair");
+                            System.out.println("1 -> -logar");
+                            System.out.println("2 -> -registar utilizadores");
                         }
                         else{
-                            System.out.println("0 -> sair e desligar cliente");
-                            System.out.println("1 -> desconectar-se");
-                            System.out.println("2 -> procurar musicas");//a partir d dados paciais, para mostrar so os detalhes da musica
+                            System.out.println("0 -> -sair e desligar cliente");
+                            System.out.println("1 -> -desconectar-se");
+                            System.out.println("2 -> -procurar musicas");//a partir d dados paciais, para mostrar so os detalhes da musica
                             System.out.println("3 -> procurar detalhes de albuns");//same
                             System.out.println("4 -> procurar detalhes de musicas");//ssame
                             System.out.println("5 -> escrever critica num album");
