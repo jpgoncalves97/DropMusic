@@ -130,8 +130,8 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     @Override
     public void unsubscribe(String user) throws RemoteException{
         int index = usernames.indexOf(user);
-        System.out.println("o client "+user+"desligou-se");
-        send_all_return_str("request;logout;"+user);
+        System.out.println("o client "+user+" desligou-se");
+        send_all("request;logout;"+user);
         if(index != -1) {
             clientes.remove(index);
             usernames.remove(index);
@@ -252,6 +252,20 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         return str;
     }
 
+    public void send_all(String str) {
+        System.out.println("SEND ALL RETURN STR");
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    System.out.println("Sending to all");
+                    MulticastServer.sendString(socket,  "0;" + str);
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+        }).start();
+
+    }
     public String send_all_return_str(String str) {
         System.out.println("SEND ALL RETURN STR");
         SharedMessage msg = new SharedMessage();
@@ -278,6 +292,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                 } catch (Exception e) {
                     System.out.println(e);
                 }
+                System.out.println("exit");
             }
         }).start();
 
