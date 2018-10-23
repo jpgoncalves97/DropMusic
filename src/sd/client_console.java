@@ -75,7 +75,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                         switch (input) {
                             case "-1":{
                                 try{
-                                    client_console.test(user_name);
+                                    client_console.sendMsg(user_name, "test notification");
                                 }catch (Exception e) {
                                     System.out.println("Exception in main: " + e);
                                 }

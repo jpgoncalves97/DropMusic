@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 public interface rmi_interface_client extends Remote {
 
-    boolean test(String username) throws RemoteException;//0=false
+    void sendMsg(String username, String msg) throws RemoteException;//0=false
 
     int login(String username, String password) throws RemoteException;
 

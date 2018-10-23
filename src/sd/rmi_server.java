@@ -115,17 +115,16 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }
     }
 
-    public boolean test(String username) throws RemoteException {
+    public void sendMsg(String username, String msg) throws RemoteException {
 
         System.out.println("testing notify");
         try {
             int index = usernames.indexOf(username);
             System.out.println(index);
-            clientes.get(usernames.indexOf(username)).notify_client("notify test to " + username);
+            clientes.get(usernames.indexOf(username)).notify_client(msg);
         } catch (Exception e) {
             System.out.println("Exception in main: " + e);
         }
-        return true;
     }
 
     @Override
@@ -137,7 +136,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             usernames.remove(index);
         }
     }
-    
+
     @Override
     public void subscribe(String username, client_interface c) throws RemoteException {
         System.out.println("new client");
@@ -255,7 +254,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
                     System.out.println("Sending to id: " + id);
 
-                    MulticastServer.sendString(socket, "request;" + str);
+                    MulticastServer.sendString(socket,  "request;" + str);
                     String response;
                     do {
                         response = MulticastServer.receiveString(socket);
