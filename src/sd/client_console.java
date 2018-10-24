@@ -66,9 +66,9 @@ public class client_console extends UnicastRemoteObject implements client_interf
                         else{
                             System.out.println("0 -> -sair e desligar cliente");
                             System.out.println("1 -> -desconectar-se");
-                            System.out.println("2 -> -procurar musicas");//a partir d dados paciais, para mostrar so os detalhes da musica
-                            System.out.println("3 -> procurar detalhes de albuns");//same
-                            System.out.println("4 -> procurar detalhes de musicas");//ssame
+                            System.out.println("2 -> -procurar musicas e detalhes");//a partir d dados paciais, para mostrar so os detalhes da musica
+                            System.out.println("3 -> procurar albuns e detalhes");//same
+                            System.out.println("4 -> procurar artistas e detalhes");//ssame
                             System.out.println("5 -> escrever critica num album");
                             if(editor){
                                 System.out.println("6 -> promove user");
@@ -203,7 +203,19 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     for(int i = 0; i<Integer.parseInt(arr[3]);i++){
                                         System.out.println(i + "->" + arr[3+i]);
                                     }
-                                }break;
+                                    System.out.println("escolha uma musica, para visao detalhada:");
+                                    int i = read_int();
+                                    if((0<=i)&&(i<Integer.parseInt(arr[3]))){
+                                        str = client_console.send_one_return_str("request;details;musica;"+arr[4+i]);
+                                    }
+                                    else{
+                                        System.out.println("input errado");
+                                        break;
+                                    }
+
+                                    System.out.println("Detalhes:\n"+str.split(";")[3]);
+                                }
+                                break;
                             }
                             case "3":{//detalhes de albuns---------------
                                 if(!logged){
@@ -215,34 +227,134 @@ public class client_console extends UnicastRemoteObject implements client_interf
 
                                 String search = "";
                                 //artista/genero/album
-                                if(t == 1) search = "nome do album";
+                                if(t == 1) search = "album";
                                 else if(t == 2) search = "artista";
-                                else if(t == 3) search = "nome da musica";
+                                else if(t == 3) search = "musica";
                                 else{
                                     System.out.println("erro");
                                     break;
                                 }
-
-
-                                String str = client_console.send_one_return_str("request;album_list/artist_list");
+                                System.out.println("escreva aqui:");
+                                String word = scan.nextLine();
+                                /*request;album_search;album/artista/musica;nome(album/artista/music)
+                                response;album_search;int item_count;String[item_count] nome_albuns*/
+                                String str = "request;album_search;"+search+";"+word;
+                                str = client_console.send_one_return_str(str);
                                 System.out.println("sent>> "+ str);
                                 String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                if(Integer.parseInt(arr[3]) == 0){
+                                    System.out.println("Nao foram encrotados albuns");
+                                    break;
+                                }
                                 for(int i = 0; i<Integer.parseInt(arr[3]);i++){
                                     System.out.println(i + "->" + arr[3+i]);
                                 }
-                                System.out.println("escolha um album:");
-
-                                //request;details;album/artista/musica;nome(album/author/music);
+                                System.out.println("escolha um album, para visao detalhada:");
                                 int i = read_int();
                                 if((0<=i)&&(i<Integer.parseInt(arr[3]))){
-                                    client_console.send_one_return_str("request;details;album;"+arr[3+i]);
+                                    str = client_console.send_one_return_str("request;details;album;"+arr[4+i]);
                                 }
                                 else{
                                     System.out.println("input errado");
                                     break;
                                 }
+                                System.out.println("Detalhes:\n"+str.split(";")[3]);
                                 break;
                             }
+                            case "4":{//detalhes de artistas---------------
+                                if(!logged){
+                                    break;
+                                }
+                                System.out.println("Procurar artistas por:\n 1-nome do artista\n 2-nome do album\n 3-nome da musica");
+                                int t = read_int();
+                                if(t == -1) break;
+
+                                String search = "";
+                                if(t == 1) search = "artista";
+                                else if(t == 2) search = "album";
+                                else if(t == 3) search = "musica";
+                                if(search == "") break;
+
+                                System.out.println("escreva aqui:");
+                                String word = scan.nextLine();
+                                /*request;artist_search;album/artista/musica;nome(album/artista/music)
+                                response;artist_search;int item_count;String[item_count] nome_albuns*/
+                                String str = "request;artist_search;"+search+";"+word;
+                                str = client_console.send_one_return_str(str);
+                                System.out.println("sent>> "+ str);
+                                String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                if(Integer.parseInt(arr[3]) == 0){
+                                    System.out.println("Nao foram encrotados artistas");
+                                    break;
+                                }
+                                for(int i = 0; i<Integer.parseInt(arr[3]);i++){
+                                    System.out.println(i + "->" + arr[3+i]);
+                                }
+                                System.out.println("escolha um album, para visao detalhada:");
+                                int i = read_int();
+                                if((0<=i)&&(i<Integer.parseInt(arr[3]))){
+                                    str = client_console.send_one_return_str("request;details;artista;"+arr[4+i]);
+                                }
+                                else{
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                System.out.println("Detalhes:\n"+str.split(";")[3]);
+                                break;
+                            }
+                            case "5":{
+                                if(!logged){
+                                    break;
+                                }
+                                //escrever critica
+                                //1-search album
+                                System.out.println("Procurar albuns por:\n 1-nome do album\n 2-artista\n 3-nome da musica");
+                                int t = read_int();
+                                if(t == -1) break;
+
+                                String search = "";
+                                //artista/genero/album
+                                if(t == 1) search = "album";
+                                else if(t == 2) search = "artista";
+                                else if(t == 3) search = "musica";
+                                else{
+                                    break;
+                                }
+                                System.out.println("escreva aqui:");
+                                String word = scan.nextLine();
+                                /*request;album_search;album/artista/musica;nome(album/artista/music)
+                                response;album_search;int item_count;String[item_count] nome_albuns*/
+                                String str = "request;album_search;"+search+";"+word;
+                                str = client_console.send_one_return_str(str);
+                                System.out.println("sent>> "+ str);
+                                String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                if(Integer.parseInt(arr[3]) == 0){
+                                    System.out.println("Nao foram encrotados albuns");
+                                    break;
+                                }
+                                for(int i = 0; i<Integer.parseInt(arr[3]);i++){
+                                    System.out.println(i + "->" + arr[3+i]);
+                                }
+                                System.out.println("escolha um album, para visao detalhada:");
+                                int i = read_int();
+                                //2-write critic
+                                //request;critic;nome_album;int pontuacao; string descricao_critica
+                                if((0<=i)&&(i<Integer.parseInt(arr[3]))){
+                                    str = client_console.send_one_return_str("request;critic;"+arr[4+i]);
+                                }
+                                else{
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                if(str.contains("true")){
+                                    System.out.println("critica escrita com sucesso");
+                                }
+                                else{
+                                    System.out.println("erro na escrita da critica");
+                                }
+                                break;
+                            }
+
                         }
                     } catch (RemoteException ex) {
                         Logger.getLogger(client_console.class.getName()).log(Level.SEVERE, null, ex);

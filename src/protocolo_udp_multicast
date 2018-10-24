@@ -23,6 +23,14 @@ request;edit;username;album;nome;descricao;alteracao
 request;music_search;username;artista/genero_musical/album;String informacao
 response;music_search;int item_count;String[item_count] nome_musicas
 
+#3.5 pesquisar albuns no caso de ser um artista podem haver muitos albuns para mostrar, a opçao album é tipo um excerto do nome completo do album pra procurar
+request;album_search;album/artista/musica;nome(album/artista/music)
+response;album_search;int item_count;String[item_count] nome_albuns
+
+#3.7 pesquisar artistas
+request;artist_search;album/artista/musica;nome(album/artista/music)
+response;artist_search;int item_count;String[item_count] nome_artists
+
 #4 Consultar detalhes sobre álbum e sobre artista
 request;album_list/artist_list
 request;details;album/artista/musica;nome(album/author/music);
@@ -30,6 +38,7 @@ response;details;album/artista/musica toString()
 
 #5 Escrever crítica a um álbum
 request;critic;nome_album;int pontuacao; string descricao_critica
+response;critic;true/false
 
 #6 Dar privilégios de editor a um utilizador
 request;non_editor_list
