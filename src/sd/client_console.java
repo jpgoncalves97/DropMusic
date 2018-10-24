@@ -26,6 +26,15 @@ public class client_console extends UnicastRemoteObject implements client_interf
         System.out.println(str);
     }
 
+    private static int read_int(){
+        Scanner scan = new Scanner(System.in);
+        try {
+            return Integer.parseInt(scan.nextLine());
+        } catch (NumberFormatException e){
+            return -1;
+        }
+    }
+
     public static void main(String args[]) throws RemoteException {
         try {
 
@@ -74,7 +83,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                         input = scan.nextLine();
                         switch (input) {
                             case "-2":{
+                                System.out.println("online users:");
                                 System.out.println(client_console.get_online_clients());
+                                System.out.println("is editor:");
+                                System.out.println(editor);
                                 break;
                             }
                             case "-1":{
@@ -128,53 +140,56 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     user newuser = new user();
 
                                     System.out.println("Num de cc:");
-                                    int num_cc = scan.nextInt();
-                                    newuser.setNum_cc(num_cc);
-                                    scan.nextLine();
+                                    int t = read_int();
+                                    if (t == -1) break;
+                                    newuser.setNum_cc(t);
                                     System.out.println("Nome:");
                                     newuser.setNome(scan.nextLine());
-
+                                    if(newuser.getNome().equals("")) break;
                                     System.out.println("UserName:");
                                     newuser.setUsername(scan.nextLine());
-
+                                    if(newuser.getUsername().equals("")) break;
                                     System.out.println("Password:");
                                     newuser.setPassword(scan.nextLine());
-
+                                    if(newuser.getPassword().equals("")) break;
                                     System.out.println("idade:");
-                                    newuser.setIdade(scan.nextInt());
+                                    t = read_int();
+                                    if (t == -1) break;
+                                    newuser.setIdade(t);
 
                                     System.out.println("numero de telefone:");
-                                    newuser.setPhone_num(scan.nextInt());
-                                    scan.nextLine();
+                                    t = read_int();
+                                    if(t == -1) break;
+                                    newuser.setPhone_num(t);
                                     System.out.println("Endereço:");
                                     newuser.setAddress(scan.nextLine());
-                                    System.out.println("permissoes de editor?[y/n]");
-                                    if (scan.nextLine().equals("y"))
-                                        newuser.setEditor(true);
-                                    else newuser.setEditor(false);
+
                                     boolean status = false;
                                     String str = newuser.pacote_String();
                                     try {
                                         //System.out.println("trying to comunicate with rmi");
                                         str = "request;register;"+str;
                                         status = client_console.send_all_return_bool(str);
-                                        //System.out.println("Registo com sucesso!");
 
                                     } catch (RemoteException ex) {
                                         Logger.getLogger(client_console.class.getName()).log(Level.SEVERE, null, ex);
                                     }
-                                    if (!status)
+                                    if (!status) {
                                         System.out.println("Erro no registo da nova unidade, por favor repita o processo");
+                                        break;
+                                    }
+                                    System.out.println("Registo com sucesso!");
+
 
                                 }else{//procurar musicas-----------------
-                                    System.out.println("Procurar por:\n 1-Nome do artista\n 2-album\n 3-genero musical");
-                                    int num_cc = scan.nextInt();
-                                    scan.nextLine();
+                                    System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical");
+                                    int t = read_int();
+                                    if(t == -1) break;
                                     String search = "";
                                     //artista/genero/album
-                                    if(num_cc == 1) search = "artista";
-                                    else if(num_cc == 2) search = "album";
-                                    else if(num_cc == 3) search = "genero";
+                                    if(t == 1) search = "artista";
+                                    else if(t == 2) search = "album";
+                                    else if(t == 3) search = "genero";
                                     else{
                                         System.out.println("erro");
                                         break;
@@ -184,9 +199,9 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     System.out.println("sent>> "+ str);
 
                                     String arr[] = (client_console.send_one_return_str(str)).split(";");
-                                    System.out.println("cp");
+                                    //System.out.println("cp");
                                     for(int i = 0; i<Integer.parseInt(arr[3]);i++){
-                                        System.out.println(i+arr[3+i]);
+                                        System.out.println(i + "->" + arr[3+i]);
                                     }
                                 }break;
                             }
@@ -194,13 +209,41 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 if(!logged){
                                     break;
                                 }
+                                System.out.println("Procurar albuns por:\n 1-nome do album\n 2-artista\n 3-nome da musica");
+                                int t = read_int();
+                                if(t == -1) break;
+
+                                String search = "";
+                                //artista/genero/album
+                                if(t == 1) search = "nome do album";
+                                else if(t == 2) search = "artista";
+                                else if(t == 3) search = "nome da musica";
+                                else{
+                                    System.out.println("erro");
+                                    break;
+                                }
+
+
+                                String str = client_console.send_one_return_str("request;album_list/artist_list");
+                                System.out.println("sent>> "+ str);
+                                String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                for(int i = 0; i<Integer.parseInt(arr[3]);i++){
+                                    System.out.println(i + "->" + arr[3+i]);
+                                }
+                                System.out.println("escolha um album:");
+
+                                //request;details;album/artista/musica;nome(album/author/music);
+                                int i = read_int();
+                                if((0<=i)&&(i<Integer.parseInt(arr[3]))){
+                                    client_console.send_one_return_str("request;details;album;"+arr[3+i]);
+                                }
+                                else{
+                                    System.out.println("input errado");
+                                    break;
+                                }
                                 break;
                             }
-
-
                         }
-
-
                     } catch (RemoteException ex) {
                         Logger.getLogger(client_console.class.getName()).log(Level.SEVERE, null, ex);
                     }
