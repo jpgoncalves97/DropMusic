@@ -433,7 +433,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             case "12":{//partilhar musica com outro cliente
                                 if(!logged){
                                     System.out.println("Publicar uma musica:");
-                                    
+
                                 }
                                 break;
                             }
