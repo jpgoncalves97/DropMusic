@@ -292,6 +292,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 }
                                 System.out.println("escolha um album, para visao detalhada:");
                                 int i = read_int();
+                                if(i == -1) {
+                                    System.out.println("input errado");
+                                    break;
+                                }
                                 if((0<=i)&&(i<Integer.parseInt(arr[3]))){
                                     str = client_console.send_one_return_str("request;details;artista;"+arr[4+i]);
                                 }
@@ -302,7 +306,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 System.out.println("Detalhes:\n"+str.split(";")[3]);
                                 break;
                             }
-                            case "5":{
+                            case "5":{//escrever uma critica
                                 if(!logged){
                                     break;
                                 }
@@ -337,6 +341,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 }
                                 System.out.println("escolha um album, para visao detalhada:");
                                 int i = read_int();
+                                if(i == -1) {
+                                    System.out.println("input errado");
+                                    break;
+                                }
                                 //2-write critic
                                 //request;critic;nome_album;int pontuacao; string descricao_critica
                                 if((0<=i)&&(i<Integer.parseInt(arr[3]))){
@@ -354,7 +362,81 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 }
                                 break;
                             }
+                            case "6":{//promover user to editor
+                                if(!logged || !editor) break;
+                                /*request;non_editor_list
+                                response;non_editor_list;int n_users; String username[n_users]
+                                request;give_editor;username*/
+                                //list users
+                                System.out.println("Lista de utilizadores nao editores:");
+                                String str = client_console.send_one_return_str("request;non_editor_list");
+                                String arr[] = str.split(";");
+                                for(int i = 0; i < Integer.parseInt(arr[3]); i++){
+                                    System.out.println(i + "->" + arr[4+i]);
+                                }
+                                System.out.println("escolha um utilizador para promover a editor");
+                                int i = read_int();
+                                if(i == -1) {
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                if((0<=i)&&(i<Integer.parseInt(arr[3]))){
+                                    str = client_console.send_one_return_str("request;give_editor;"+ arr[4+i]);
+                                    client_console.promove_user(arr[4+i]);
+                                }
+                                else{
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                if(str.contains("true")){
+                                    System.out.println("sucesso");
+                                }
+                                else{
+                                    System.out.println("erro");
+                                }
+                                break;
+                            }
+                            case "7":{//editar info de musicas
+                                if(!logged || !editor) break;
+                                System.out.println("editar info musicas");
 
+                                break;
+                            }
+                            case "8":{//editar info de albuns
+                                if(!logged || !editor) break;
+                                System.out.println("editar info albuns");
+
+
+                                break;
+                            }
+                            case "9":{//editar info de artisitas
+                                if(!logged || !editor) break;
+                                System.out.println("editar info artistas");
+
+
+                                break;
+                            }
+                            case "10":{//baixar musica
+                                if(!logged){
+                                    System.out.println("baixar uma musica");
+
+                                }
+                                break;
+                            }
+                            case "11":{//publicar musica
+                                if(!logged){
+                                    System.out.println("Publicar uma musica:");
+
+                                }
+                                break;
+                            }
+                            case "12":{//partilhar musica com outro cliente
+                                if(!logged){
+                                    System.out.println("Publicar uma musica:");
+                                    
+                                }
+                                break;
+                            }
                         }
                     } catch (RemoteException ex) {
                         Logger.getLogger(client_console.class.getName()).log(Level.SEVERE, null, ex);

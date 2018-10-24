@@ -253,7 +253,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
     public void send_all(String str) {
-        System.out.println("SEND ALL RETURN STR");
+        System.out.println("SEND ALL");
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -266,6 +266,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }).start();
 
     }
+
     public String send_all_return_str(String str) {
         System.out.println("SEND ALL RETURN STR");
         SharedMessage msg = new SharedMessage();
@@ -343,6 +344,24 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }).start();
 
         return getString(msg);
+    }
+
+    public void promove_user(String username){
+        //se estiver online recebe notificação
+        System.out.println("promove_user");
+        try{
+            if(usernames.contains(username)){
+                sendMsg(username, "O SENHOR(A) FOI PROMOVIDO(A) PARA EDITOR!!");
+                System.out.println("o "+username+" foi notificado");
+            }
+            else{
+                System.out.println("o "+username+" nao foi notificado, porque nao esta online");
+            }
+        }catch (Exception e) {
+            System.out.println("Exception in main: " + e);
+        }
+
+
     }
 
 }
