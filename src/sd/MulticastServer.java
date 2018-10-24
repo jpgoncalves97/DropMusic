@@ -499,8 +499,7 @@ class MulticastServer extends Thread implements Serializable {
                                 return;
                             }
                         }
-                    case "album_search":
-                    case "artist_search": {
+                    case "album_search": {
                         int count = 0;
                         String resposta = ";";
                         switch (msg[3]) {
@@ -537,7 +536,7 @@ class MulticastServer extends Thread implements Serializable {
                                 break;
                             }
                         }
-                        sendString(socket, id + ";response;" + msg[2] + ";" + count + resposta);
+                        sendString(socket, id + ";response;album_search;" + count + resposta);
                         return;
                     }
                     case "album_list": {
@@ -548,6 +547,47 @@ class MulticastServer extends Thread implements Serializable {
                             count++;
                         }
                         sendString(socket, id + ";response;album_list;" + count + resposta);
+                        return;
+                    }
+                    case "artist_search": {
+                        int count = 0;
+                        String resposta = ";";
+                        switch (msg[3]) {
+                            case "album": {
+                                for (album a : albums) {
+                                    for (author a1 : a.getAuthors()) {
+                                        if (a.getNome().equals(msg[4])) {
+                                            resposta += a.getNome() + ";";
+                                            count++;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                            case "artista": {
+                                for (author a : authors) {
+                                    if (a.getNome().equals(msg[4])) {
+                                        resposta += a.getNome() + ";";
+                                        count++;
+                                    }
+                                }
+                                break;
+                            }
+                            case "musica": {
+                                for (music a : musicas) {
+                                    if (a.getAuthor() != null) {
+                                        resposta += a.getNome() + ";";
+                                    } else {
+                                        for (author a1 : a.getBand().getAuthors()) {
+                                            resposta += a1.getNome() + ";";
+                                            count++;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                        sendString(socket, id + ";response;artist_search;" + count + resposta);
                         return;
                     }
                     case "artist_list": {
