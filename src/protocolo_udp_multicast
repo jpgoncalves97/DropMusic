@@ -33,6 +33,7 @@ response;artist_search;int item_count;String[item_count] nome_artists
 
 #4 Consultar detalhes sobre álbum e sobre artista
 request;album_list/artist_list
+response;album_list/artist_list;int item_count;String[item_count] nome_artists/albuns
 request;details;album/artista/musica;nome(album/author/music);
 response;details;album/artista/musica toString()
 

@@ -63,7 +63,7 @@ class MulticastServer extends Thread implements Serializable {
         //listAllFiles();
     }
 
-    public void defaultFiles(){
+    public void defaultFiles() {
         author[] a = {new author("Eminem"), new author("Drake"), new author("Michael Jackson"),
                 new author("Angus Young"), new author("Brian Johnson"), new author("Bon Scott"), new author("Axl Rose"),
                 new author("Roger Waters"), new author("David Gilmour"), new author("Syd Barrett"),
@@ -132,6 +132,7 @@ class MulticastServer extends Thread implements Serializable {
         writeToFile(authorPath, a);
         writeToFile(bandPath, b);
     }
+
     public void listAllFiles() {
         System.out.println("Users: ");
         for (String user : users.keySet()) {
@@ -150,8 +151,8 @@ class MulticastServer extends Thread implements Serializable {
             System.out.println(a.toString());
         }
         System.out.println("Bandas: ");
-        band[] b = (band [])readFromFile(bandPath);
-        for (int i = 0; i < b.length; i++){
+        band[] b = (band[]) readFromFile(bandPath);
+        for (int i = 0; i < b.length; i++) {
             System.out.println(b[i].toString());
         }
     }
@@ -195,10 +196,10 @@ class MulticastServer extends Thread implements Serializable {
 
     public void writeToFile(String path, Object o) {
         File f = new File(path);
-        if (!f.exists()){
+        if (!f.exists()) {
             try {
                 f.createNewFile();
-            } catch (IOException e){
+            } catch (IOException e) {
                 System.out.println("Error creating file: " + e);
             }
         }
@@ -358,8 +359,8 @@ class MulticastServer extends Thread implements Serializable {
                         users.get(msg[3]).setOnline(false);
                         sendString(socket, id + ";response;ignore");
                         return;
-                        // Feito até aqui
-                        // --------------------------------------------------------------------------------------------------
+                    // Feito até aqui
+                    // --------------------------------------------------------------------------------------------------
                     case "edit":
                         switch (msg[4]) {
                             case "music":
@@ -498,6 +499,67 @@ class MulticastServer extends Thread implements Serializable {
                                 return;
                             }
                         }
+                    case "album_search":
+                    case "artist_search": {
+                        int count = 0;
+                        String resposta = ";";
+                        switch (msg[3]) {
+                            case "album": {
+                                for (album a : albums) {
+                                    if (a.getNome().equals(msg[4])) {
+                                        resposta += a.getNome() + ";";
+                                        count++;
+                                    }
+                                }
+                                break;
+                            }
+                            case "artista": {
+                                for (author a : authors) {
+                                    for (album a1 : a.getAlbuns()) {
+                                        if (a1.getNome().equals(msg[4])) {
+                                            resposta += a1.getNome() + ";";
+                                            count++;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                            case "musica": {
+                                for (music a : musicas) {
+                                    album a1 = a.getAlbum();
+                                    if (a1 != null) {
+                                        if (a1.getNome().equals(msg[4])) {
+                                            resposta += a1.getNome() + ";";
+                                            count++;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                        sendString(socket, id + ";response;" + msg[2] + ";" + count + resposta);
+                        return;
+                    }
+                    case "album_list": {
+                        int count = 0;
+                        String resposta = ";";
+                        for (album a : albums) {
+                            resposta += a.getNome() + ";";
+                            count++;
+                        }
+                        sendString(socket, id + ";response;album_list;" + count + resposta);
+                        return;
+                    }
+                    case "artist_list": {
+                        int count = 0;
+                        String resposta = ";";
+                        for (author a : authors) {
+                            resposta += a.getNome() + ";";
+                            count++;
+                        }
+                        sendString(socket, id + ";response;album_list;" + count + resposta);
+                        return;
+                    }
                     case "details":
                         switch (msg[3]) {
                             case "album":
@@ -543,13 +605,13 @@ class MulticastServer extends Thread implements Serializable {
                         }
                     case "non_editor_list":
                         ArrayList<String> l = new ArrayList<>();
-                        for (String key : users.keySet()){
-                            if (!users.get(key).isEditor()){
+                        for (String key : users.keySet()) {
+                            if (!users.get(key).isEditor()) {
                                 l.add(users.get(key).getUsername());
                             }
                         }
                         String m = id + ";response;non_editor_list;" + l.size() + ";";
-                        for (String s : l){
+                        for (String s : l) {
                             m += s + ";";
                         }
                         sendString(socket, m);
@@ -564,6 +626,7 @@ class MulticastServer extends Thread implements Serializable {
                 }
             }
         }
+
     }
 
     public static void sendString(MulticastSocket socket, String msg) {
