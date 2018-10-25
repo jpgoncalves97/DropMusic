@@ -32,19 +32,20 @@ class MulticastServer extends Thread implements Serializable {
 
     public MulticastServer(String[] args) {
         super();
-        mainPath = args[0];
+        mainPath = "C:/multicast/";
         userPath = mainPath + "users";
         albumPath = mainPath + "albuns";
         authorPath = mainPath + "authors";
         musicPath = mainPath + "music";
         bandPath = mainPath + "bands";
         musicFilePath = mainPath + "musica";
-        try {
+        TCP_PORT = 5000;
+        /*try {
             TCP_PORT = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
             System.out.println("Bad TCP port");
             System.exit(1);
-        }
+        }*/
         System.out.println("Server id# " + id);
 
         // TCPHandler(TCP_PORT);
