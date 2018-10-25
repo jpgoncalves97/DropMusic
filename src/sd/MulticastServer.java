@@ -323,11 +323,13 @@ class MulticastServer extends Thread implements Serializable {
     }
 
     public void sendNotifications(user u) {
+        String resposta = "";
         Iterator<String> it = u.getNotificacoes().iterator();
         while (it.hasNext()) {
-            MulticastServer.sendString(socket, it.next());
+            resposta += it.next() + "\n";
             it.remove();
         }
+        MulticastServer.sendString(socket, id + ";response;notification;" + u.getNome() + ";" + resposta);
     }
 
     public void decodeMessage(String[] msg) {
@@ -341,9 +343,7 @@ class MulticastServer extends Thread implements Serializable {
                     case "register":
                         //user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc)
                         user u = new user(false, Integer.parseInt(msg[3]), msg[4], msg[5], msg[6], Integer.parseInt(msg[7]), msg[8], Integer.parseInt(msg[9]));
-                        u.setOnline(true);
                         sendString(socket, id + ";" + (registerUser(u) ? "response;register;true" : "response;register;false"));
-                        sendNotifications(u);
                         return;
                     case "login":
                         user u1 = users.get(msg[3]);
@@ -390,13 +390,12 @@ class MulticastServer extends Thread implements Serializable {
                                                 a.setDescricao(msg[7], msg[3]);
                                                 for (String username : a.getEditores()) {
                                                     user u2 = users.get(username);
-                                                    String n = id + ";response;notification;" + username +
-                                                            ";Foi alterada a descricao do artista " + a.getNome();
+                                                    String n = "Foi alterada a descricao do artista " + a.getNome();
+                                                    u2.addNotificacao(n);
                                                     if (u2.isOnline()) {
-                                                        sendString(socket, n);
+                                                        sendNotifications(u2);
                                                         return;
                                                     } else {
-                                                        u2.addNotificacao(n);
                                                         sendString(socket, id + ";response;ignore");
                                                         return;
                                                     }
@@ -418,7 +417,9 @@ class MulticastServer extends Thread implements Serializable {
                                                 return;
                                             case "descricao":
                                                 a.setDescricao(msg[6], msg[4]);
+                                                String n = "Foi alterada a descrição do album " + a.getNome();
                                                 for (String username : users.keySet()) {
+                                                    users.get(username).addNotificacao(n);
                                                     sendNotifications(users.get(username));
                                                 }
                                                 sendString(socket, id + ";response;ignore");
@@ -505,7 +506,7 @@ class MulticastServer extends Thread implements Serializable {
                         switch (msg[3]) {
                             case "album": {
                                 for (album a : albums) {
-                                    if (a.getNome().equals(msg[4])) {
+                                    if (a.getNome().contains(msg[4])) {
                                         resposta += a.getNome() + ";";
                                         count++;
                                     }
@@ -515,7 +516,7 @@ class MulticastServer extends Thread implements Serializable {
                             case "artista": {
                                 for (author a : authors) {
                                     for (album a1 : a.getAlbuns()) {
-                                        if (a1.getNome().equals(msg[4])) {
+                                        if (a1.getNome().contains(msg[4])) {
                                             resposta += a1.getNome() + ";";
                                             count++;
                                         }
@@ -527,7 +528,7 @@ class MulticastServer extends Thread implements Serializable {
                                 for (music a : musicas) {
                                     album a1 = a.getAlbum();
                                     if (a1 != null) {
-                                        if (a1.getNome().equals(msg[4])) {
+                                        if (a1.getNome().contains(msg[4])) {
                                             resposta += a1.getNome() + ";";
                                             count++;
                                         }
@@ -556,7 +557,7 @@ class MulticastServer extends Thread implements Serializable {
                             case "album": {
                                 for (album a : albums) {
                                     for (author a1 : a.getAuthors()) {
-                                        if (a.getNome().equals(msg[4])) {
+                                        if (a.getNome().contains(msg[4])) {
                                             resposta += a.getNome() + ";";
                                             count++;
                                         }
@@ -566,7 +567,7 @@ class MulticastServer extends Thread implements Serializable {
                             }
                             case "artista": {
                                 for (author a : authors) {
-                                    if (a.getNome().equals(msg[4])) {
+                                    if (a.getNome().contains(msg[4])) {
                                         resposta += a.getNome() + ";";
                                         count++;
                                     }
@@ -627,7 +628,7 @@ class MulticastServer extends Thread implements Serializable {
                     case "critic":
                         for (album a : albums) {
                             if (a.getNome().equals(msg[3])) {
-                                a.addCritica(new critica(Integer.parseInt(msg[4]), msg[5]));
+                                a.addCritica(new critica(msg[6], Integer.parseInt(msg[4]), msg[5]));
                                 sendString(socket, id + ";response;ignore");
                                 return;
                             }
@@ -635,11 +636,11 @@ class MulticastServer extends Thread implements Serializable {
                     case "give_editor":
                         System.out.println("giving editor\n" + msg[3] + " " + users.get(msg[3]).isOnline());
                         users.get(msg[3]).setEditor(true);
-                        String notificacao = id + ";response;notification;" + msg[3] + ";Obteve privilégios de editor";
+                        String notificacao = "Obteve privilégios de editor";
+                        users.get(msg[3]).addNotificacao(notificacao);
                         if (users.get(msg[3]).isOnline()) {
-                            sendString(socket, notificacao);
+                            sendNotifications(users.get(msg[3]));
                         } else {
-                            users.get(msg[3]).addNotificacao(notificacao);
                             sendString(socket, id + ";response;ignore");
                             return;
                         }
