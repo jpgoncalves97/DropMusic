@@ -11,26 +11,40 @@ class MulticastServer extends Thread implements Serializable {
 
     private final static String MULTICAST_ADDRESS = "224.0.224.0";
     private final static int PORT = 4321;
-    protected static int TCP_PORT = 1234;
+    private int TCP_PORT;
     private MulticastSocket socket;
     private final String id = Long.toString(System.currentTimeMillis());
-    private final String mainPath = "C:/multicast/";
-    private final String userPath = mainPath + "users";
-    private final String albumPath = mainPath + "albuns";
-    private final String authorPath = mainPath + "authors";
-    private final String musicPath = mainPath + "music";
-    private final String bandPath = mainPath + "bands";
+    private final String mainPath;
+    private final String userPath;
+    private final String albumPath;
+    private final String authorPath;
+    private final String musicPath;
+    private final String bandPath;
+    private final String musicFilePath;
 
-    private final String musicFilePath = mainPath + "musica";
     private HashMap<String, user> users;
     private ArrayList<author> authors;
     private ArrayList<album> albums;
     private ArrayList<music> musicas;
+    private ArrayList<band> bands;
     private ArrayList<File> fileMusicas;
     private LinkedList<String> requests;
 
-    public MulticastServer() {
+    public MulticastServer(String[] args) {
         super();
+        mainPath = args[0];
+        userPath = mainPath + "users";
+        albumPath = mainPath + "albuns";
+        authorPath = mainPath + "authors";
+        musicPath = mainPath + "music";
+        bandPath = mainPath + "bands";
+        musicFilePath = mainPath + "musica";
+        try {
+            TCP_PORT = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            System.out.println("Bad TCP port");
+            System.exit(1);
+        }
         System.out.println("Server id# " + id);
 
         // TCPHandler(TCP_PORT);
@@ -46,7 +60,8 @@ class MulticastServer extends Thread implements Serializable {
         if (!(new File(userPath).exists()) ||
                 !(new File(albumPath).exists()) ||
                 !(new File(authorPath).exists()) ||
-                !(new File(musicPath).exists())) {
+                !(new File(musicPath).exists()) ||
+                !(new File(bandPath).exists())) {
             defaultFiles();
         }
         requests = new LinkedList<>();
@@ -54,6 +69,7 @@ class MulticastServer extends Thread implements Serializable {
         users = new HashMap<>(100);
         authors = new ArrayList<>(Arrays.asList((author[]) readFromFile(authorPath)));
         albums = new ArrayList<>(Arrays.asList((album[]) readFromFile(albumPath)));
+        bands = new ArrayList<>(Arrays.asList((band[]) readFromFile(bandPath)));
         readUserFile();
 
         socket = newMulticastSocket();
@@ -158,7 +174,7 @@ class MulticastServer extends Thread implements Serializable {
     }
 
     public static void main(String[] args) {
-        new MulticastServer();
+        new MulticastServer(args);
     }
 
     public void readUserFile() {
@@ -333,7 +349,6 @@ class MulticastServer extends Thread implements Serializable {
     }
 
     public void decodeMessage(String[] msg) {
-
         if (msg[0].equals(id) || msg[0].equals("0")) {
             if (msg[1].equals("request")) {
                 switch (msg[2]) {
@@ -656,6 +671,55 @@ class MulticastServer extends Thread implements Serializable {
                             m += s + ";";
                         }
                         sendString(socket, m);
+                        return;
+                    case "tcp_port":
+                        sendString(socket, id + ";response;tcp_port;" + TCP_PORT);
+                        return;
+                    case "upload":
+                        //request;upload;username;nome;bool banda;banda/artista;letra;
+                        // music(String nome, author a, boolean publico, album album, String lyrics){
+                        if (msg[5].equals("true")) {
+                            for (int i = 0; i < bands.size(); i++) {
+                                if (bands.get(i).getNome().equals(msg[6])) {
+                                    musicas.add(new music(msg[4], bands.get(i), false, null, msg[7]));
+                                    break;
+                                }
+                            }
+                            band b = new band(msg[6]);
+                            bands.add(b);
+                            musicas.add(new music(msg[4], b, false, null, msg[7]));
+                        } else {
+                            for (int i = 0; i < authors.size(); i++) {
+                                if (authors.get(i).getNome().equals(msg[6])) {
+                                    musicas.add(new music(msg[4], authors.get(i), false, null, msg[7]));
+                                    break;
+                                }
+                            }
+                            author a = new author(msg[6]);
+                            authors.add(a);
+                            musicas.add(new music(msg[4], a, false, null, msg[7]));
+                        }
+                        musicas.get(musicas.size() - 1).addUser(msg[3]);
+                        sendString(socket, id + ";response;upload;true");
+                        return;
+                    case "share":
+                        for (music m2 : musicas){
+                            if (m2.getNome().equals(msg[3])){
+                                m2.addUser(msg[4]);
+                            }
+                        }
+                        sendString(socket, id + "response;ignore");
+                        return;
+                    case "user_songs":
+                        int count = 0;
+                        String res = "";
+                        for (music m1 : musicas) {
+                            if (m1.getUsers().get(0).equals(msg[3])){
+                                res += m1.getNome() + ";";
+                                count++;
+                            }
+                        }
+                        sendString(socket, id + ";response;user_songs;" + count + ";" + res);
                         return;
                     case "user_list":
                         for (String key : users.keySet()) {

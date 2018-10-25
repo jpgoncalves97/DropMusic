@@ -50,10 +50,15 @@ request;give_editor;username
 #8 Notiﬁcação imediata de re-edição de descrição textual
 response;notification;username;mensagem
 
-
-response;text_edit;album_name;int n_users; users[n_users]
+# TCP
+request;tcp_port;
+response;tcp_port;port
 
 #11 Partilha de ﬁcheiros musicais
-request;uploaded_files;username
+request;upload;username;nome;bool banda;banda/artista;album;letra;
+response;upload;bool sucesso
+request;user_songs;username
+response;user_songs;int count; String nomes[count]
+
 response;uploaded_files;int n_files;String filename[n_files]
 request;share;filename;username

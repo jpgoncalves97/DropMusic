@@ -14,12 +14,10 @@ public class user implements Serializable {
     private int phone_num;
     private String address;
     private int num_cc;
-    private ArrayList<playlist> playlists;
     private ArrayList<String> notificacoes;
 
-    public user(){
+    public user() {
         online = false;
-        playlists = new ArrayList<>();
         notificacoes = new ArrayList<>();
     }
 
@@ -33,7 +31,6 @@ public class user implements Serializable {
         this.phone_num = phone_num;
         this.address = address;
         this.num_cc = num_cc;
-        playlists = new ArrayList<>();
         notificacoes = new ArrayList<>();
     }
 
@@ -53,7 +50,10 @@ public class user implements Serializable {
         return idade;
     }
 
-    public void addNotificacao(String notificacao){ notificacoes.add(notificacao); }
+    public void addNotificacao(String notificacao) {
+        notificacoes.add(notificacao);
+    }
+
     public void setEditor(boolean editor) {
         this.editor = editor;
     }
@@ -62,14 +62,10 @@ public class user implements Serializable {
         this.idade = idade;
     }
 
-    public ArrayList<String> getNotificacoes(){ return notificacoes; }
-    public ArrayList<playlist> getPlaylists() {
-        return playlists;
+    public ArrayList<String> getNotificacoes() {
+        return notificacoes;
     }
 
-    public void setPlaylists(ArrayList<playlist> playlists) {
-        this.playlists = playlists;
-    }
 
     public String getUsername() {
         return this.username;
@@ -126,14 +122,7 @@ public class user implements Serializable {
 
     @Override
     public String toString() {
-        String ret = "Username: " + nome + "\nPassword: " + password + "\nOnline: " + online + "\nEditor: " + isEditor() + "\nIdade: " + idade +
-                "\nNome: " + nome + "\nTelemovel: " + phone_num + "\nMorada: " + address + "\nCC: " + num_cc + "\nPlaylist: \n";
-        for (playlist p : playlists) {
-            ret += "Músicas: \n";
-            for (music m : p.getMusicas()) {
-                ret += m.getNome() + "\n";
-            }
-        }
-        return ret;
+        return "Username: " + nome + "\nPassword: " + password + "\nOnline: " + online + "\nEditor: " + isEditor() + "\nIdade: " + idade +
+                "\nNome: " + nome + "\nTelemovel: " + phone_num + "\nMorada: " + address + "\nCC: " + num_cc;
     }
 }
