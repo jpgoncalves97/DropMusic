@@ -8,7 +8,8 @@ public class critica implements Serializable {
     private String comentario;
     private String autor;
 
-    public critica(int points, String comentario) {
+    public critica(String autor, int points, String comentario) {
+        this.autor = autor;
         this.points = points;
         this.comentario = comentario;
     }
