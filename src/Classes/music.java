@@ -57,6 +57,11 @@ public class music implements Serializable {
     public void setPublico(boolean publico) { this.publico = publico; }
     public void setNome(String nome) { this.nome = nome; }
 
+    public String pacote_String(boolean banda){
+        //true=banda
+        return this.nome+";"+banda+";"+((banda) ? this.band : this.author)+";"+this.lyrics;
+    }
+
     @Override
     public String toString() {
         String ret = "Nome: " + this.nome + "\nPublico: " + publico + "\nAutores: \n";

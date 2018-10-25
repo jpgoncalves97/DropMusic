@@ -30,5 +30,7 @@ public interface rmi_interface_client extends Remote {
 
     String send_one_return_str(String str) throws RemoteException;
 
+    int get_tcp_port() throws RemoteException;
+
 
 }

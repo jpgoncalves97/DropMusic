@@ -215,6 +215,11 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         //return true;
     }
 
+    public int get_tcp_port(){
+        String str = send_one_return_str("request;tcp_port");
+        return Integer.parseInt(str.split(";")[3]);
+    }
+
     @Override
     public int login(String username, String password) throws RemoteException {
         System.out.println("LOGIN");
