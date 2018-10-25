@@ -430,7 +430,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     Socket socket = null;
                                     try {
                                         System.out.println("caminho da pasta da musica:");
-                                        String musicFilePath = scan.nextLine();
+                                        String musicFilePath = "C:/Users/j/Desktop/musica_cliente";
                                         //pasta com musicas
 
                                         System.out.println("[0] Upload\n[1] Download");
@@ -483,7 +483,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                             System.out.println(i+ "->"+musicas.get(i).getName());
                                                         }
                                                     }
-                                                    if (escolha >= 0 && escolha < musicas.size()) ;
+                                                    if (escolha >= 0 && escolha < musicas.size()) break;
 
                                                 }
                                                 File f = musicas.get(escolha);
@@ -508,7 +508,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                 System.out.println("Quais sao as lyrics?");
                                                 String lyrics = scan.nextLine();
                                                 String pacote_String = newmusicname + ";" + boolbanda + ";" + bandaousutor + ";" + lyrics;
-                                                client_console.send_all_return_str("request;uploaded_files;username;"+pacote_String);
+                                                client_console.send_all_return_str("request;upload;username;"+pacote_String);
                                                 out.write(f.getName().getBytes());
                                                 TCP.uploadFile(f, out);
                                                 break;
@@ -547,7 +547,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                     System.out.println("input errado");
                                                     break;
                                                 }
-
+                                                filename += ".mp3";
                                                 out.write(1);
                                                 out.write(filename.getBytes());
                                                 // Se in.read == 1 encontrou ficheiro

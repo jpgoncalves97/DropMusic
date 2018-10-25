@@ -9,7 +9,7 @@ import java.util.*;
 
 class MulticastServer extends Thread implements Serializable {
 
-    private final static String MULTICAST_ADDRESS = "224.0.224.0";
+    private final static String MULTICAST_ADDRESS = "224.0.225.0";
     private final static int PORT = 4321;
     private static int TCP_PORT;
     private MulticastSocket socket;
@@ -48,7 +48,7 @@ class MulticastServer extends Thread implements Serializable {
         }*/
         System.out.println("Server id# " + id);
 
-        // TCPHandler(TCP_PORT);
+         TCPHandler(TCP_PORT);
 
         File[] temp = new File(musicFilePath).listFiles();
         System.out.println("Musicas");
