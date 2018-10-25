@@ -442,7 +442,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         }
                                         ArrayList<File> musicas;
                                         File[] files = new File(musicFilePath).listFiles();
-                                        System.out.println("cp");
+                                        System.out.println("Musicas na pasta escolhida");
                                         if (files == null){
                                             musicas = new ArrayList<>();
                                         } else {
@@ -454,7 +454,9 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                             }
                                         }
                                         System.out.println("cp1");
-                                        socket = new Socket("127.0.0.1", client_console.get_tcp_port());
+                                        int tcp_port = client_console.get_tcp_port();
+                                        System.out.println(tcp_port);
+                                        socket = new Socket("127.0.0.1", tcp_port);
                                         System.out.println("cp2");
                                         InputStream in = socket.getInputStream();
                                         System.out.println("cp3");
