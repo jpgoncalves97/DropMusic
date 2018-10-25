@@ -38,7 +38,7 @@ request;details;album/artista/musica;nome(album/author/music);
 response;details;album/artista/musica toString()
 
 #5 Escrever crítica a um álbum
-request;critic;nome_album;int pontuacao; string descricao_critica
+request;critic;nome_album;int pontuacao; string descricao_critica;username
 response;critic;true/false
 
 #6 Dar privilégios de editor a um utilizador

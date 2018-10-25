@@ -71,7 +71,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             System.out.println("4 -> procurar artistas e detalhes");//ssame
                             System.out.println("5 -> escrever critica num album");
                             if(editor){
-                                System.out.println("6 -> promove user");
+                                System.out.println("6 -> -promove user");
                                 System.out.println("7 -> editar info de musicas");
                                 System.out.println("8 -> editar info de albuns");
                                 System.out.println("9 -> editar info de artistas");
@@ -141,7 +141,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
 
                                     System.out.println("Num de cc:");
                                     int t = read_int();
-                                    if (t == -1) break;
+                                    if (t == -1) {
+                                        System.out.println("input errado");
+                                        break;
+                                    }
                                     newuser.setNum_cc(t);
                                     System.out.println("Nome:");
                                     newuser.setNome(scan.nextLine());
@@ -154,12 +157,18 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     if(newuser.getPassword().equals("")) break;
                                     System.out.println("idade:");
                                     t = read_int();
-                                    if (t == -1) break;
+                                    if (t == -1) {
+                                        System.out.println("input errado");
+                                        break;
+                                    }
                                     newuser.setIdade(t);
 
                                     System.out.println("numero de telefone:");
                                     t = read_int();
-                                    if(t == -1) break;
+                                    if(t == -1) {
+                                        System.out.println("input errado");
+                                        break;
+                                    }
                                     newuser.setPhone_num(t);
                                     System.out.println("Endereço:");
                                     newuser.setAddress(scan.nextLine());
@@ -184,7 +193,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 }else{//procurar musicas-----------------
                                     System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical");
                                     int t = read_int();
-                                    if(t == -1) break;
+                                    if(t == -1) {
+                                        System.out.println("input errado");
+                                        break;
+                                    }
                                     String search = "";
                                     //artista/genero/album
                                     if(t == 1) search = "artista";
@@ -201,7 +213,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     String arr[] = (client_console.send_one_return_str(str)).split(";");
                                     //System.out.println("cp");
                                     for(int i = 0; i<Integer.parseInt(arr[3]);i++){
-                                        System.out.println(i + "->" + arr[3+i]);
+                                        System.out.println(i + "->" + arr[4+i]);
                                     }
                                     System.out.println("escolha uma musica, para visao detalhada:");
                                     int i = read_int();
@@ -239,15 +251,16 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 /*request;album_search;album/artista/musica;nome(album/artista/music)
                                 response;album_search;int item_count;String[item_count] nome_albuns*/
                                 String str = "request;album_search;"+search+";"+word;
+                                //System.out.println("sent>> "+ str);
                                 str = client_console.send_one_return_str(str);
-                                System.out.println("sent>> "+ str);
-                                String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                //System.out.println("received>> "+ str);
+                                String arr[] = (str).split(";");
                                 if(Integer.parseInt(arr[3]) == 0){
-                                    System.out.println("Nao foram encrotados albuns");
+                                    System.out.println("Nao foram encontrados albuns");
                                     break;
                                 }
                                 for(int i = 0; i<Integer.parseInt(arr[3]);i++){
-                                    System.out.println(i + "->" + arr[3+i]);
+                                    System.out.println(i + "->" + arr[4+i]);
                                 }
                                 System.out.println("escolha um album, para visao detalhada:");
                                 int i = read_int();
@@ -288,7 +301,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     break;
                                 }
                                 for(int i = 0; i<Integer.parseInt(arr[3]);i++){
-                                    System.out.println(i + "->" + arr[3+i]);
+                                    System.out.println(i + "->" + arr[4+i]);
                                 }
                                 System.out.println("escolha um album, para visao detalhada:");
                                 int i = read_int();
@@ -329,17 +342,16 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 /*request;album_search;album/artista/musica;nome(album/artista/music)
                                 response;album_search;int item_count;String[item_count] nome_albuns*/
                                 String str = "request;album_search;"+search+";"+word;
-                                str = client_console.send_one_return_str(str);
-                                System.out.println("sent>> "+ str);
+                                //System.out.println("sent>> "+ str);
                                 String arr[] = (client_console.send_one_return_str(str)).split(";");
                                 if(Integer.parseInt(arr[3]) == 0){
                                     System.out.println("Nao foram encrotados albuns");
                                     break;
                                 }
                                 for(int i = 0; i<Integer.parseInt(arr[3]);i++){
-                                    System.out.println(i + "->" + arr[3+i]);
+                                    System.out.println(i + "->" + arr[4+i]);
                                 }
-                                System.out.println("escolha um album, para visao detalhada:");
+                                System.out.println("escolha um album, para escrever critica:");
                                 int i = read_int();
                                 if(i == -1) {
                                     System.out.println("input errado");
@@ -347,18 +359,24 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 }
                                 //2-write critic
                                 //request;critic;nome_album;int pontuacao; string descricao_critica
+                                System.out.println("Pontuação:");
+                                int points = read_int();
+                                if(points == -1) {
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                System.out.println("comentario:");
+                                String comentario = scan.nextLine();
+                                if(comentario.length() > 300){
+                                    System.out.println("Tem calma Camoes, so 300 carateres!");
+                                    break;
+                                }
                                 if((0<=i)&&(i<Integer.parseInt(arr[3]))){
-                                    str = client_console.send_one_return_str("request;critic;"+arr[4+i]);
+                                    client_console.send_one_return_str("request;critic;"+arr[4+i]+";"+points+";"+comentario+";"+user_name);
                                 }
                                 else{
                                     System.out.println("input errado");
                                     break;
-                                }
-                                if(str.contains("true")){
-                                    System.out.println("critica escrita com sucesso");
-                                }
-                                else{
-                                    System.out.println("erro na escrita da critica");
                                 }
                                 break;
                             }
@@ -381,18 +399,12 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     break;
                                 }
                                 if((0<=i)&&(i<Integer.parseInt(arr[3]))){
-                                    str = client_console.send_one_return_str("request;give_editor;"+ arr[4+i]);
+                                    client_console.send_one_return_str("request;give_editor;"+ arr[4+i]);
                                     client_console.promove_user(arr[4+i]);
                                 }
                                 else{
                                     System.out.println("input errado");
                                     break;
-                                }
-                                if(str.contains("true")){
-                                    System.out.println("sucesso");
-                                }
-                                else{
-                                    System.out.println("erro");
                                 }
                                 break;
                             }
@@ -445,7 +457,17 @@ public class client_console extends UnicastRemoteObject implements client_interf
             }
         }).start();
 
-
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                System.out.println("W: Interrupt received, killing server…");
+                try {
+                    client_console.unsubscribe(user_name);
+                }catch (RemoteException ex) {
+                    Logger.getLogger(client_console.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
 
         while (true) {
 

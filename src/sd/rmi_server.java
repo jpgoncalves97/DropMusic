@@ -145,6 +145,28 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         this.usernames.add(username);
     }
 
+    public void receive_notification(){
+        //receive notifications
+        new Thread(new Runnable() {
+            public void run() {
+                Scanner sc = new Scanner(System.in);
+                while (true) {
+                    try {
+                        String response;
+                        do {
+                            response = MulticastServer.receiveString(socket);
+                        } while (!response.contains("notification"));
+                        String arr[] = response.split(";");
+                        sendMsg(arr[3],arr[4]);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                }
+
+            }
+        }).start();
+    }
+
     //#1
     @Override
     public boolean send_all_return_bool(String str) {
@@ -208,9 +230,8 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     do {
                         response = MulticastServer.receiveString(socket);
                         //System.out.println(response);
-                    } while (response.contains("request"));
+                    } while (response.contains("request") );
                     System.out.println("Received: " + response);
-
                     synchronized (msg) {
                         msg.setMsg(response);
                         msg.notify();
@@ -282,6 +303,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     do {
                         response = MulticastServer.receiveString(socket);
                         System.out.println(response);
+                        String arr[] = response.split(";");
                     } while (response.contains("request"));
                     System.out.println("Received: " + response);
 
