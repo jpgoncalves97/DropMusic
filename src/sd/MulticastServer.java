@@ -409,13 +409,8 @@ class MulticastServer extends Thread implements Serializable {
                                                     user u2 = users.get(username);
                                                     String n = "Foi alterada a descricao do artista " + a.getNome();
                                                     u2.addNotificacao(n);
-                                                    if (u2.isOnline()) {
-                                                        sendNotifications(u2);
-                                                        return;
-                                                    } else {
-                                                        sendString(socket, id + ";response;ignore");
-                                                        return;
-                                                    }
+                                                    sendString(socket, id + ";response;ignore");
+                                                    return;
                                                 }
                                         }
                                     }
@@ -437,7 +432,6 @@ class MulticastServer extends Thread implements Serializable {
                                                 String n = "Foi alterada a descrição do album " + a.getNome();
                                                 for (String username : users.keySet()) {
                                                     users.get(username).addNotificacao(n);
-                                                    sendNotifications(users.get(username));
                                                 }
                                                 sendString(socket, id + ";response;ignore");
                                                 return;
@@ -655,12 +649,11 @@ class MulticastServer extends Thread implements Serializable {
                         users.get(msg[3]).setEditor(true);
                         String notificacao = "Obteve privilégios de editor";
                         users.get(msg[3]).addNotificacao(notificacao);
-                        if (users.get(msg[3]).isOnline()) {
-                            sendNotifications(users.get(msg[3]));
-                        } else {
-                            sendString(socket, id + ";response;ignore");
-                            return;
-                        }
+                        sendString(socket, id + ";response;ignore");
+                        return;
+                    case "notification":
+                        sendNotifications(users.get(msg[3]));
+                        return;
                     case "non_editor_list":
                         ArrayList<String> l = new ArrayList<>();
                         for (String key : users.keySet()) {

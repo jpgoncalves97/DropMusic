@@ -48,7 +48,7 @@ request;give_editor;username
 
 #7 Notiﬁcação imediata de privilégios de editor
 #8 Notiﬁcação imediata de re-edição de descrição textual
-request;notification;username
+request;notification;username;
 response;notification;username;mensagem
 
 # TCP
