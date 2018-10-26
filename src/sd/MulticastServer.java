@@ -11,7 +11,7 @@ class MulticastServer extends Thread implements Serializable {
 
     private final static String MULTICAST_ADDRESS = "224.0.225.0";
     private final static int PORT = 4321;
-    private static int TCP_PORT;
+    public static int TCP_PORT;
     private MulticastSocket socket;
     private final String id = Long.toString(System.currentTimeMillis());
     private final String mainPath;

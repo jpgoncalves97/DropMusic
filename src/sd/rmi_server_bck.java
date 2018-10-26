@@ -1,8 +1,6 @@
 package sd;
 
 
-import Classes.*;
-
 import javax.sound.midi.SysexMessage;
 import javax.xml.crypto.Data;
 import java.io.*;
@@ -19,11 +17,12 @@ import java.text.ParseException;
 import java.util.*;
 
 
-public class rmi_server extends UnicastRemoteObject implements rmi_interface_client {
+public class rmi_server_bck extends UnicastRemoteObject implements rmi_interface_client {
     private int test_var;
-    private MulticastSocket socket;
+    private static MulticastSocket socket;
     private ArrayList<client_interface> clientes = new ArrayList<>();
     private ArrayList<String> usernames = new ArrayList<>();
+    private static boolean status;
 
     public class SharedMessage {
         private String msg;
@@ -46,7 +45,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
 
     }
 
-    private rmi_server() throws RemoteException, ParseException {
+    private rmi_server_bck() throws RemoteException, ParseException {
         test_var = 0;
         socket = MulticastServer.newMulticastSocket();
         new Thread(new Runnable() {
@@ -77,25 +76,21 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
     public static void main(String args[]) throws ParseException {
-
-
-        try {
-            rmi_server servidorRMI;
-            servidorRMI = new rmi_server();
-            Registry registry = LocateRegistry.createRegistry(6789);
-            registry.rebind("192.1", servidorRMI);
-            System.err.println("servidor rmi online ...");
-        } catch (RemoteException e) {
-            System.out.print("Exception in RMI Server.main: " + e);
             try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
+                rmi_server_bck servidorRMI;
+                servidorRMI = new rmi_server_bck();
+                Registry registry = LocateRegistry.createRegistry(6789);
+                registry.rebind("192.1", servidorRMI);
+                System.err.println("servidor rmi bck online ...");
+            } catch (RemoteException e) {
+                System.out.print("Exception in RMI Server.main: " + e);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                main(args);
             }
-            main(args);
-        }
-
-
     }
 
     public ArrayList getServerIds() {
