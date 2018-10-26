@@ -61,4 +61,4 @@ request;user_songs;username
 response;user_songs;int count; String nomes[count]
 
 response;uploaded_files;int n_files;String filename[n_files]
-request;share;filename;username
+request;share;filename;bool publico; username

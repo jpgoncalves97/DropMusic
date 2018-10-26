@@ -8,12 +8,13 @@ public class music implements Serializable {
     private boolean publico;
     private String nome;
     private ArrayList<String> users;
+    private String owner;
     private album album;
     private band band;
     private author author;
     private String lyrics;
 
-    public music(String nome, band b, boolean publico, album album, String lyrics){
+    public music(String nome, band b, boolean publico, album album, String lyrics, String username){
         this.nome = nome;
         this.publico = publico;
         this.band = b;
@@ -21,9 +22,10 @@ public class music implements Serializable {
         this.users = new ArrayList<>();
         this.album = album;
         this.lyrics = lyrics;
+        this.owner = username;
     }
 
-    public music(String nome, author a, boolean publico, album album, String lyrics){
+    public music(String nome, author a, boolean publico, album album, String lyrics, String username){
         this.nome = nome;
         this.publico = publico;
         this.author = a;
@@ -31,16 +33,13 @@ public class music implements Serializable {
         this.users = new ArrayList<>();
         this.album = album;
         this.lyrics = lyrics;
+        this.owner = null;
     }
 
     public void addUser(String user){ users.add(user); }
     public boolean canGetMusic(String user){
-        if (publico) return true;
-        for (String u : users){
-            if (u.equals(user))
-                return true;
-        }
-        return false;
+        if (publico || (owner != null && owner.equals(user))) return true;
+        else return false;
     }
 
     public album getAlbum() { return album; }
@@ -51,7 +50,7 @@ public class music implements Serializable {
     public String getNome() { return nome; }
     public author getAuthor(){ return author; }
     public band getBand() { return band; }
-
+    public String getOwner(){ return owner; }
     public void setAlbum(Classes.album album) { this.album = album; }
     public void setLyrics(String lyrics) { this.lyrics = lyrics; }
     public void setPublico(boolean publico) { this.publico = publico; }

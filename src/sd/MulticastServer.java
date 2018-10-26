@@ -11,7 +11,7 @@ class MulticastServer extends Thread implements Serializable {
 
     private final static String MULTICAST_ADDRESS = "224.0.225.0";
     private final static int PORT = 4321;
-    public static int TCP_PORT;
+    public int TCP_PORT;
     private MulticastSocket socket;
     private final String id = Long.toString(System.currentTimeMillis());
     private final String mainPath;
@@ -30,7 +30,7 @@ class MulticastServer extends Thread implements Serializable {
     private ArrayList<File> fileMusicas;
     private LinkedList<String> requests;
 
-    public MulticastServer(String[] args) {
+    public MulticastServer(int tcp_port) {
         super();
         mainPath = "C:/multicast/";
         userPath = mainPath + "users";
@@ -39,7 +39,7 @@ class MulticastServer extends Thread implements Serializable {
         musicPath = mainPath + "music";
         bandPath = mainPath + "bands";
         musicFilePath = mainPath + "musica";
-        TCP_PORT = 5000;
+        TCP_PORT = tcp_port;
         /*try {
             TCP_PORT = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
@@ -48,7 +48,7 @@ class MulticastServer extends Thread implements Serializable {
         }*/
         System.out.println("Server id# " + id);
 
-         TCPHandler(TCP_PORT);
+        TCPHandler(TCP_PORT);
 
         File[] temp = new File(musicFilePath).listFiles();
         System.out.println("Musicas");
@@ -101,23 +101,23 @@ class MulticastServer extends Thread implements Serializable {
         b[1].addAlbum(al[1]);
         b[2].addAlbum(al[5]);
         //String nome, band b, boolean publico, album album, String lyrics, Timestamp timelenght)
-        music[] m = {new music("Any Colour You Like", b[1], true, al[1], ""),
-                new music("Back In Black", b[0], true, al[0], ""),
-                new music("Beat it", a[2], true, al[4], ""),
-                new music("Billie Jean", a[2], true, al[4], ""),
-                new music("Dare", b[2], true, al[5], ""),
-                new music("Dirty Harry", b[2], true, al[5], ""),
-                new music("Fall", a[0], true, al[2], ""),
-                new music("Gods Plan", a[1], true, al[3], ""),
-                new music("Have a drink on me", b[0], true, al[0], ""),
-                new music("In My Feelings", a[1], true, al[3], ""),
-                new music("Kamikaze", a[0], true, al[2], ""),
-                new music("Kids with guns", b[2], true, al[5], ""),
-                new music("Lucky You", a[0], true, al[2], ""),
-                new music("Money", b[1], true, al[1], ""),
-                new music("Thriller", a[2], true, al[4], ""),
-                new music("Us and Them", b[1], true, al[1], ""),
-                new music("You shook me all night long", b[0], true, al[0], "")};
+        music[] m = {new music("Any Colour You Like", b[1], true, al[1], "", null),
+                new music("Back In Black", b[0], true, al[0], "", null),
+                new music("Beat it", a[2], true, al[4], "", null),
+                new music("Billie Jean", a[2], true, al[4], "", null),
+                new music("Dare", b[2], true, al[5], "", null),
+                new music("Dirty Harry", b[2], true, al[5], "", null),
+                new music("Fall", a[0], true, al[2], "", null),
+                new music("Gods Plan", a[1], true, al[3], "", null),
+                new music("Have a drink on me", b[0], true, al[0], "", null),
+                new music("In My Feelings", a[1], true, al[3], "", null),
+                new music("Kamikaze", a[0], true, al[2], "", null),
+                new music("Kids with guns", b[2], true, al[5], "", null),
+                new music("Lucky You", a[0], true, al[2], "", null),
+                new music("Money", b[1], true, al[1], "", null),
+                new music("Thriller", a[2], true, al[4], "", null),
+                new music("Us and Them", b[1], true, al[1], "", null),
+                new music("You shook me all night long", b[0], true, al[0], "", null)};
         al[0].addMusicas(m[1]);
         al[0].addMusicas(m[8]);
         al[0].addMusicas(m[16]);
@@ -175,7 +175,9 @@ class MulticastServer extends Thread implements Serializable {
     }
 
     public static void main(String[] args) {
-        new MulticastServer(args);
+        Scanner sc = new Scanner(System.in);
+        System.out.print("TCP_PORT = ");
+        new MulticastServer(sc.nextInt());
     }
 
     public void readUserFile() {
@@ -682,31 +684,34 @@ class MulticastServer extends Thread implements Serializable {
                         if (msg[5].equals("true")) {
                             for (int i = 0; i < bands.size(); i++) {
                                 if (bands.get(i).getNome().equals(msg[6])) {
-                                    musicas.add(new music(msg[4], bands.get(i), false, null, msg[7]));
+                                    musicas.add(new music(msg[4], bands.get(i), false, null, msg[7], msg[3]));
                                     break;
                                 }
                             }
                             band b = new band(msg[6]);
                             bands.add(b);
-                            musicas.add(new music(msg[4], b, false, null, msg[7]));
+                            musicas.add(new music(msg[4], b, false, null, msg[7], msg[3]));
                         } else {
                             for (int i = 0; i < authors.size(); i++) {
                                 if (authors.get(i).getNome().equals(msg[6])) {
-                                    musicas.add(new music(msg[4], authors.get(i), false, null, msg[7]));
+                                    musicas.add(new music(msg[4], authors.get(i), false, null, msg[7], msg[3]));
                                     break;
                                 }
                             }
                             author a = new author(msg[6]);
                             authors.add(a);
-                            musicas.add(new music(msg[4], a, false, null, msg[7]));
+                            musicas.add(new music(msg[4], a, false, null, msg[7], msg[3]));
                         }
-                        musicas.get(musicas.size() - 1).addUser(msg[3]);
                         sendString(socket, id + ";response;upload;true");
                         return;
                     case "share":
-                        for (music m2 : musicas){
-                            if (m2.getNome().equals(msg[3])){
-                                m2.addUser(msg[4]);
+                        for (music mu : musicas){
+                            if (mu.getNome().equals(msg[3])){
+                                if (msg[4].equals("true")){
+                                    mu.setPublico(true);
+                                } else {
+                                    mu.addUser(msg[5]);
+                                }
                             }
                         }
                         sendString(socket, id + "response;ignore");
@@ -715,7 +720,7 @@ class MulticastServer extends Thread implements Serializable {
                         int count = 0;
                         String res = "";
                         for (music m1 : musicas) {
-                            if (m1.getUsers().get(0).equals(msg[3])){
+                            if (m1.getOwner().equals(msg[3])) {
                                 res += m1.getNome() + ";";
                                 count++;
                             }
