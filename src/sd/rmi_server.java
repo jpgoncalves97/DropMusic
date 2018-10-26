@@ -25,6 +25,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     private MulticastSocket socket;
     private ArrayList<client_interface> clientes = new ArrayList<>();
     private ArrayList<String> usernames = new ArrayList<>();
+    private ArrayList<Boolean> iseditor = new ArrayList<>();
 
     public class SharedMessage {
         private String msg;
@@ -128,8 +129,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
     public void sendMsg(String username, String msg) throws RemoteException {
-
-        System.out.println("testing notify");
+        System.out.println("notification sent");
         try {
             int index = usernames.indexOf(username);
             System.out.println(index);
@@ -146,37 +146,17 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         send_all("request;logout;"+user);
         if(index != -1) {
             clientes.remove(index);
+            iseditor.remove(index);
             usernames.remove(index);
         }
     }
 
     @Override
-    public void subscribe(String username, client_interface c) throws RemoteException {
+    public void subscribe(String username, client_interface c, boolean editor) throws RemoteException {
         System.out.println("new client");
         this.clientes.add(c);
+        this.iseditor.add(editor);
         this.usernames.add(username);
-    }
-
-    public void receive_notification(){
-        //receive notifications
-        new Thread(new Runnable() {
-            public void run() {
-                Scanner sc = new Scanner(System.in);
-                while (true) {
-                    try {
-                        String response;
-                        do {
-                            response = MulticastServer.receiveString(socket);
-                        } while (!response.contains("notification"));
-                        String arr[] = response.split(";");
-                        sendMsg(arr[3],arr[4]);
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
-                }
-
-            }
-        }).start();
     }
 
     //#1
@@ -390,7 +370,9 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         System.out.println("promove_user");
         try{
             if(usernames.contains(username)){
-                sendMsg(username, "O SENHOR(A) FOI PROMOVIDO(A) PARA EDITOR!!");
+                String notify = send_one_return_str("request;notification;" + username);
+                String arr[] = notify.split(";");
+                sendMsg(username, arr[4]);
                 System.out.println("o "+username+" foi notificado");
             }
             else{
@@ -399,8 +381,19 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }catch (Exception e) {
             System.out.println("Exception in main: " + e);
         }
+    }
 
-
+    public void notify_editors(String msg){
+        for(int i = 0 ; i < clientes.size(); i++){
+            if(iseditor.get(i) == true){
+                String notify = send_all_return_str("request;notification;"+usernames.get(i));
+                try {
+                    sendMsg(usernames.get(i),notify);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 }

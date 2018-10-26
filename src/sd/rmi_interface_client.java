@@ -18,7 +18,7 @@ public interface rmi_interface_client extends Remote {
 
     void unsubscribe(String user) throws RemoteException;
 
-    void subscribe(String name, client_interface client) throws RemoteException;
+    void subscribe(String name, client_interface client, boolean editor) throws RemoteException;
 
     boolean send_all_return_bool(String str) throws RemoteException;
 
@@ -31,6 +31,8 @@ public interface rmi_interface_client extends Remote {
     String send_one_return_str(String str) throws RemoteException;
 
     int get_tcp_port() throws RemoteException;
+
+    void notify_editors(String msg) throws RemoteException;
 
 
 }
