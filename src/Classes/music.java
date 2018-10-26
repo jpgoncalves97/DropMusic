@@ -36,10 +36,13 @@ public class music implements Serializable {
         this.owner = null;
     }
 
-    public void addUser(String user){ users.add(user); }
+    public void addUser(String user){ users.add(user); System.out.println("Added user " + user + " to music "+ nome);}
     public boolean canGetMusic(String user){
         if (publico || (owner != null && owner.equals(user))) return true;
-        else return false;
+        for (String u : users){
+            if (u.equals(user)) return true;
+        }
+        return false;
     }
 
     public album getAlbum() { return album; }

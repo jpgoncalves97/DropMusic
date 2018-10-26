@@ -457,7 +457,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     Socket socket = null;
                                     try {
                                         System.out.println("caminho da pasta da musica:");
-                                        String musicFilePath = "C:/Users/j/Desktop/musica_cliente";
+                                        String musicFilePath = scan.nextLine();
+                                        //String musicFilePath = "C:/Users/j/Desktop/musica_cliente";
                                         //pasta com musicas
 
                                         System.out.println("[0] Upload\n[1] Download");
@@ -474,19 +475,12 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                             musicas = new ArrayList<>();
                                         } else {
                                             musicas = new ArrayList<>(Arrays.asList(files));
-                                            for (File file : musicas) {
-                                                if (file.isFile()) {
-                                                    System.out.println(file.getName());
-                                                }
-                                            }
+
                                         }
-                                        System.out.println("cp1");
                                         int tcp_port = client_console.get_tcp_port();
                                         System.out.println(tcp_port);
                                         socket = new Socket("127.0.0.1", tcp_port);
-                                        System.out.println("cp2");
                                         InputStream in = socket.getInputStream();
-                                        System.out.println("cp3");
                                         OutputStream out = socket.getOutputStream();
                                         String filename;
 
@@ -504,11 +498,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                     if (escolha == -1) {
                                                         System.out.println("wrong input");
                                                         break;
-                                                    }
-                                                    for (int i = 0; i<musicas.size();i++) {
-                                                        if (musicas.get(i).isFile()) {
-                                                            System.out.println(i+ "->"+musicas.get(i).getName());
-                                                        }
                                                     }
                                                     if (escolha >= 0 && escolha < musicas.size()) break;
 
@@ -535,7 +524,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                 System.out.println("Quais sao as lyrics?");
                                                 String lyrics = scan.nextLine();
                                                 String pacote_String = newmusicname + ";" + boolbanda + ";" + bandaousutor + ";" + lyrics;
-                                                client_console.send_all_return_str("request;upload;username;"+pacote_String);
+                                                client_console.send_all_return_str("request;upload;"+user_name+";"+pacote_String);
                                                 out.write(f.getName().getBytes());
                                                 TCP.uploadFile(f, out);
                                                 break;
@@ -562,7 +551,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                 System.out.println("sent>> " + str);
 
                                                 String arr[] = (client_console.send_one_return_str(str)).split(";");
-                                                //System.out.println("cp");
+
                                                 for (int i = 0; i < Integer.parseInt(arr[3]); i++) {
                                                     System.out.println(i + "->" + arr[4 + i]);
                                                 }
@@ -581,7 +570,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                 if (in.read() != 1) {
                                                     System.out.println("File " + filename + " not found");
                                                 }
-
                                                 TCP.downloadFile(musicFilePath, musicas, filename, in);
                                                 break;
                                         }
@@ -604,8 +592,50 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 break;
                             }
                             case "11": {//partilhar musica com outro cliente
-                                if (!logged) {
+                                if (logged) {
                                     System.out.println("Publicar uma musica:");
+                                    System.out.println("escolher a musica");
+                                    /*request;user_songs;username
+                                    response;user_songs;int count; String nomes[count]*/
+
+                                    String str = client_console.send_one_return_str("request;user_songs;"+user_name);
+                                    String arr[] = str.split(";");
+                                    for (int i = 0; i < Integer.parseInt(arr[3]); i++) {
+                                        System.out.println(i + "->" + arr[4 + i]);
+                                    }
+                                    int choice = read_int();
+                                    if(choice == -1 || (choice<0) || (choice>Integer.parseInt(arr[3]))){
+                                        System.out.println("input errado");
+                                        break;
+                                    }
+                                    String nome_musica = arr[4 + choice];
+                                    System.out.println("partilhar a musica para todos[0] ou um utilizador especifico[1]?");
+                                    int inpt = read_int();
+                                    if(inpt != 0 && inpt != 1){
+                                        System.out.println("input errado");
+                                        break;
+                                    }
+                                    boolean publico;
+                                    if(inpt == 0){
+                                        publico = true;
+                                        client_console.send_one_return_str("request;share;"+ nome_musica+";true");
+                                    }else {
+                                        String[] res = client_console.send_one_return_str("request;user_list").split(";");
+                                        for (int i = 0; i < Integer.parseInt(res[3]); i++) {
+                                            System.out.println(i + "->" + res[4 + i]);
+                                        }
+                                        choice = read_int();
+                                        if(choice == -1 || (choice<0) || (choice>Integer.parseInt(res[3]))){
+                                            System.out.println("input errado");
+                                            break;
+                                        }
+                                        client_console.send_one_return_str("request;share;"+ nome_musica+";false;" + res[4 + choice]);
+                                        System.out.println("request;share;"+ nome_musica+";false;" + res[4 + choice]);
+
+
+                                    }
+
+                                    //request;share;filename;username
 
                                 }
                                 break;
@@ -622,18 +652,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                 }
             }
         }).start();
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                System.out.println("W: Interrupt received, killing server…");
-                try {
-                    client_console.unsubscribe(user_name);
-                } catch (RemoteException ex) {
-                    Logger.getLogger(client_console.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
 
         while (true) {
 

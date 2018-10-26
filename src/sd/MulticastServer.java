@@ -66,18 +66,18 @@ class MulticastServer extends Thread implements Serializable {
             defaultFiles();
         }
         requests = new LinkedList<>();
-        musicas = new ArrayList<>(Arrays.asList((music[]) readFromFile(musicPath)));
+        musicas = new ArrayList<>((ArrayList) readFromFile(musicPath));
         users = new HashMap<>(100);
-        authors = new ArrayList<>(Arrays.asList((author[]) readFromFile(authorPath)));
-        albums = new ArrayList<>(Arrays.asList((album[]) readFromFile(albumPath)));
-        bands = new ArrayList<>(Arrays.asList((band[]) readFromFile(bandPath)));
+        authors = new ArrayList<>((ArrayList) readFromFile(authorPath));
+        albums = new ArrayList<>((ArrayList) readFromFile(albumPath));
+        bands = new ArrayList<>((ArrayList) readFromFile(bandPath));
         readUserFile();
 
         socket = newMulticastSocket();
         newReceiverThread();
         newSenderThread();
 
-        //listAllFiles();
+        listAllFiles();
     }
 
     public void defaultFiles() {
@@ -144,10 +144,10 @@ class MulticastServer extends Thread implements Serializable {
         al[3].setAuthors(new ArrayList<>(Arrays.asList(a[1])));
         al[4].setAuthors(new ArrayList<>(Arrays.asList(a[2])));
         al[5].setAuthors(b[2].getAuthors());
-        writeToFile(albumPath, al);
-        writeToFile(musicPath, m);
-        writeToFile(authorPath, a);
-        writeToFile(bandPath, b);
+        writeToFile(albumPath, new ArrayList<>(Arrays.asList(al)));
+        writeToFile(musicPath, new ArrayList<>(Arrays.asList(m)));
+        writeToFile(authorPath, new ArrayList<>(Arrays.asList(a)));
+        writeToFile(bandPath, new ArrayList<>(Arrays.asList(b)));
     }
 
     public void listAllFiles() {
@@ -168,9 +168,8 @@ class MulticastServer extends Thread implements Serializable {
             System.out.println(a.toString());
         }
         System.out.println("Bandas: ");
-        band[] b = (band[]) readFromFile(bandPath);
-        for (int i = 0; i < b.length; i++) {
-            System.out.println(b[i].toString());
+        for (int i = 0; i < bands.size(); i++) {
+            System.out.println(bands.get(i).toString());
         }
     }
 
@@ -682,32 +681,41 @@ class MulticastServer extends Thread implements Serializable {
                         //request;upload;username;nome;bool banda;banda/artista;letra;
                         // music(String nome, author a, boolean publico, album album, String lyrics){
                         if (msg[5].equals("true")) {
-                            for (int i = 0; i < bands.size(); i++) {
+                            int i;
+                            for (i = 0; i < bands.size(); i++) {
                                 if (bands.get(i).getNome().equals(msg[6])) {
                                     musicas.add(new music(msg[4], bands.get(i), false, null, msg[7], msg[3]));
                                     break;
                                 }
                             }
-                            band b = new band(msg[6]);
-                            bands.add(b);
-                            musicas.add(new music(msg[4], b, false, null, msg[7], msg[3]));
+                            if (i == bands.size()) {
+                                band b = new band(msg[6]);
+                                bands.add(b);
+                                musicas.add(new music(msg[4], b, false, null, msg[7], msg[3]));
+                            }
                         } else {
-                            for (int i = 0; i < authors.size(); i++) {
+                            int i;
+                            for (i = 0; i < authors.size(); i++) {
                                 if (authors.get(i).getNome().equals(msg[6])) {
                                     musicas.add(new music(msg[4], authors.get(i), false, null, msg[7], msg[3]));
                                     break;
                                 }
                             }
-                            author a = new author(msg[6]);
-                            authors.add(a);
-                            musicas.add(new music(msg[4], a, false, null, msg[7], msg[3]));
+                            if (i == authors.size()) {
+                                author a = new author(msg[6]);
+                                authors.add(a);
+                                musicas.add(new music(msg[4], a, false, null, msg[7], msg[3]));
+                            }
                         }
                         sendString(socket, id + ";response;upload;true");
+                        writeToFile(musicPath, musicas);
+                        writeToFile(authorPath, authors);
+                        writeToFile(bandPath, bands);
                         return;
                     case "share":
-                        for (music mu : musicas){
-                            if (mu.getNome().equals(msg[3])){
-                                if (msg[4].equals("true")){
+                        for (music mu : musicas) {
+                            if (mu.getNome().equals(msg[3])) {
+                                if (msg[4].equals("true")) {
                                     mu.setPublico(true);
                                 } else {
                                     mu.addUser(msg[5]);
@@ -720,7 +728,7 @@ class MulticastServer extends Thread implements Serializable {
                         int count = 0;
                         String res = "";
                         for (music m1 : musicas) {
-                            if (m1.getOwner().equals(msg[3])) {
+                            if (m1.getOwner() != null && m1.getOwner().equals(msg[3])) {
                                 res += m1.getNome() + ";";
                                 count++;
                             }
@@ -728,11 +736,13 @@ class MulticastServer extends Thread implements Serializable {
                         sendString(socket, id + ";response;user_songs;" + count + ";" + res);
                         return;
                     case "user_list":
+                        int cnt = 0;
+                        String users_str = "";
                         for (String key : users.keySet()) {
-                            System.out.println(key);
-                            System.out.println(users.get(key).isEditor());
+                            users_str += users.get(key).getNome() + ";";
+                            cnt++;
                         }
-                        sendString(socket, id + ";response;ignore");
+                        sendString(socket, id + ";response;user_list;" + cnt + ";" + users_str);
                         return;
                 }
             }

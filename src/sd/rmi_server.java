@@ -87,7 +87,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             registry.bind("192.1", servidorRMI);
             System.err.println("servidor rmi online ...");
         } catch (RemoteException e) {
-            System.out.print("Exception in RMI Server.main: " + e);
+            System.out.println("Exception in RMI Server.main: " + e);
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e1) {
