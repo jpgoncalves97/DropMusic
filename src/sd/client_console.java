@@ -21,6 +21,9 @@ public class client_console extends UnicastRemoteObject implements client_interf
     private static boolean exit_state;
     private static String user_name;
     private static rmi_interface_client client_console;
+    private static String input;
+    private static boolean logged, editor,redirect;
+
 
     client_console() throws RemoteException {
         super();
@@ -41,10 +44,28 @@ public class client_console extends UnicastRemoteObject implements client_interf
 
     public static void main(String args[]) throws RemoteException {
         try {
-
             client_console = (rmi_interface_client) LocateRegistry.getRegistry(6789).lookup("192.1");
 
             System.out.printf("\nConnected to server\n");
+
+            logged = false;
+            editor = false;
+
+
+            if(args.length != 0){
+                redirect = true;
+                System.out.println("input = " + args[0]);
+                input = args[0];
+                System.out.println("logged = " + args[1]);
+                if(args[1].equals("true")) logged = true;
+                else logged = false;
+                System.out.println("editor = " + args[2]);
+                if(args[2].equals("true")) editor = true;
+                else editor = false;
+                System.out.println("username = " + args[3]);
+                user_name = args[3];
+            }
+
 
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
@@ -56,9 +77,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
             public void run() {
                 exit_state = false;
                 Scanner scan = new Scanner(System.in);
-                String input;
-                boolean logged = false;
-                boolean editor = false;
+
+
                 while (true) {
                     System.out.flush();
                     try {
@@ -82,7 +102,14 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             System.out.println("10 -> baixar ou publicar musica");
                             System.out.println("11 -> partilhar musica com outro cliente");
                         }
-                        input = scan.nextLine();
+
+                        if(redirect){
+                            System.out.println("redirection input");
+                            input = args[0];
+                        }else{
+                            redirect = false;
+                            input = scan.nextLine();
+                        }
                         switch (input) {
                             case "-2": {
                                 System.out.println("online users:");
@@ -585,7 +612,12 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             }
                         }
                     } catch (RemoteException ex) {
-                        Logger.getLogger(client_console.class.getName()).log(Level.SEVERE, null, ex);
+                        try {
+                            String arr[] = {input, String.valueOf(logged), String.valueOf(editor),user_name};
+                            main(arr);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

@@ -8,6 +8,7 @@ import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.*;
 import java.net.UnknownHostException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
@@ -83,7 +84,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             rmi_server servidorRMI;
             servidorRMI = new rmi_server();
             Registry registry = LocateRegistry.createRegistry(6789);
-            registry.rebind("192.1", servidorRMI);
+            registry.bind("192.1", servidorRMI);
             System.err.println("servidor rmi online ...");
         } catch (RemoteException e) {
             System.out.print("Exception in RMI Server.main: " + e);
@@ -93,9 +94,14 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                 e1.printStackTrace();
             }
             main(args);
+        } catch (AlreadyBoundException e) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+            main(args);
         }
-
-
     }
 
     public ArrayList getServerIds() {
