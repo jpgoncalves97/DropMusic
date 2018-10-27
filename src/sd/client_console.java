@@ -564,7 +564,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 if (!logged ) break;
                                 if (!editor) break;
                                 System.out.println("Editar info artistas");
-                                System.out.println("Procurar artistas por:\n 0-nome do artista\n 1-descriçao do artista\n 2- nome da musica");
+                                System.out.println("Procurar artistas por:\n 0-nome do artista\n 1-albuns\n 2- nome da musica");
                                 int t = read_int();
                                 if (t == -1) break;
 
@@ -581,7 +581,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 String str = "request;artist_search;" + search + ";" + word;
                                 str = client_console.send_one_return_str(str);
                                 System.out.println("sent>> " + str);
-                                String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                String arr[] = (str).split(";");
                                 if (Integer.parseInt(arr[3]) == 0) {
                                     System.out.println("Nao foram encrotados artistas");
                                     break;
