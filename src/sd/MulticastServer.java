@@ -777,11 +777,13 @@ class MulticastServer extends Thread implements Serializable {
                     case "create_playlist":{
                         users.get(msg[3]).newPlaylist(msg[4], Boolean.valueOf(msg[5]));
                         sendString(socket,id + ";response;ignore");
+                        writeToFile(userPath, users);
                         return;
                     }
                     case "delete_playlist": {
                         users.get(msg[3]).deletePlaylist(msg[4]);
                         sendString(socket, id + ";response;ignore");
+                        writeToFile(userPath, users);
                         return;
                     }
                     case "add_to_playlist": {
@@ -795,6 +797,7 @@ class MulticastServer extends Thread implements Serializable {
                         }
                         users.get(msg[3]).addMusicToPlaylist(msg[4], m2);
                         sendString(socket, id + ";response;ignore");
+                        writeToFile(userPath, users);
                         return;
                     }
                     case "user_songs":
