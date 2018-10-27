@@ -15,6 +15,7 @@ response;logout;true
 request;edit;username;music;nome;letra;alteracao
 request;edit;username;music;nome;nome;alteracao
 request;edit;username;author;nome;nome;alteracao
+request;edit;username;author;nome;descricao;alteracao
 request;edit;username;album;nome;nome;alteracao
 request;edit;username;album;nome;genero;alteracao
 request;edit;username;album;nome;descricao;alteracao

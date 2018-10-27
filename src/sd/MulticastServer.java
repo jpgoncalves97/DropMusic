@@ -419,32 +419,31 @@ class MulticastServer extends Thread implements Serializable {
                                                 return;
                                             case "descricao":
                                                 a.setDescricao(msg[7], msg[3]);
+                                                String n = "Foi alterada a descricao do artista " + a.getNome() + " por " + msg[3];
                                                 for (String username : a.getEditores()) {
-                                                    user u2 = users.get(username);
-                                                    String n = "Foi alterada a descricao do artista " + a.getNome();
-                                                    u2.addNotificacao(n);
-                                                    sendString(socket, id + ";response;ignore");
-                                                    return;
+                                                    users.get(username).addNotificacao(n);
                                                 }
+                                                sendString(socket, id + ";response;ignore");
+                                                return;
                                         }
                                     }
                                 }
                             case "album":
                                 for (album a : albums) {
-                                    if (a.getNome().equals(msg[4])) {
-                                        switch (msg[5]) {
+                                    if (a.getNome().equals(msg[5])) {
+                                        switch (msg[6]) {
                                             case "nome":
-                                                a.setNome(msg[6]);
+                                                a.setNome(msg[7]);
                                                 sendString(socket, id + ";response;ignore");
                                                 return;
                                             case "genero":
-                                                a.setGenero(msg[6]);
+                                                a.setGenero(msg[7]);
                                                 sendString(socket, id + ";response;ignore");
                                                 return;
                                             case "descricao":
-                                                a.setDescricao(msg[6], msg[4]);
-                                                String n = "Foi alterada a descrição do album " + a.getNome();
-                                                for (String username : users.keySet()) {
+                                                a.setDescricao(msg[7], msg[3]);
+                                                String n = "Foi alterada a descrição do album " + a.getNome() + " por " + msg[3];
+                                                for (String username : a.getEditores()) {
                                                     users.get(username).addNotificacao(n);
                                                 }
                                                 sendString(socket, id + ";response;ignore");
@@ -455,6 +454,18 @@ class MulticastServer extends Thread implements Serializable {
                         }
                     case "music_search":
                         switch (msg[4]) {
+                            case "nome": {
+                                int count = 0;
+                                String resposta = "";
+                                for (music m : musicas) {
+                                    if (m.getNome().contains(msg[5])) {
+                                        count++;
+                                        resposta += m.getNome() + ";";
+                                    }
+                                }
+                                sendString(socket, id + ";response;music_search;" + count + ";" + resposta);
+                                return;
+                            }
                             case "artista": {
                                 ArrayList<String> resposta = new ArrayList<>();
                                 for (music m : musicas) {
@@ -463,13 +474,13 @@ class MulticastServer extends Thread implements Serializable {
                                     }
                                     author a = m.getAuthor();
                                     if (a != null) {
-                                        if (a.getNome().equals(msg[5])) {
+                                        if (a.getNome().contains(msg[5])) {
                                             resposta.add(m.getNome());
                                         }
                                     } else {
                                         band b = m.getBand();
                                         for (author a1 : b.getAuthors()) {
-                                            if (a1.getNome().equals(msg[5])) {
+                                            if (a1.getNome().contains(msg[5])) {
                                                 resposta.add(m.getNome());
                                             }
                                         }
@@ -485,7 +496,7 @@ class MulticastServer extends Thread implements Serializable {
                             case "genero": {
                                 ArrayList<String> resposta = new ArrayList<>();
                                 for (album a : albums) {
-                                    if (a.getGenero().equals(msg[5])) {
+                                    if (a.getGenero().contains(msg[5])) {
                                         for (music m : a.getMusicas()) {
                                             if (!m.canGetMusic(msg[3])) continue;
                                             resposta.add(m.getNome());
@@ -502,7 +513,7 @@ class MulticastServer extends Thread implements Serializable {
                             case "album": {
                                 ArrayList<String> resposta = new ArrayList<>();
                                 for (album a : albums) {
-                                    if (a.getNome().equals(msg[5])) {
+                                    if (a.getNome().contains(msg[5])) {
                                         for (music m : a.getMusicas()) {
                                             if (!m.canGetMusic(msg[3])) {
                                                 continue;
@@ -601,12 +612,14 @@ class MulticastServer extends Thread implements Serializable {
                             }
                             case "musica": {
                                 for (music a : musicas) {
-                                    if (a.getAuthor() != null) {
-                                        resposta += a.getNome() + ";";
-                                    } else {
-                                        for (author a1 : a.getBand().getAuthors()) {
-                                            resposta += a1.getNome() + ";";
-                                            count++;
+                                    if (a.getNome().contains(msg[4])) {
+                                        if (a.getAuthor() != null) {
+                                            resposta += a.getNome() + ";";
+                                        } else {
+                                            for (author a1 : a.getBand().getAuthors()) {
+                                                resposta += a1.getNome() + ";";
+                                                count++;
+                                            }
                                         }
                                     }
                                 }
@@ -663,8 +676,8 @@ class MulticastServer extends Thread implements Serializable {
                         String notificacao = "Obteve privilégios de editor";
                         users.get(msg[3]).addNotificacao(notificacao);
                         sendString(socket, id + ";response;ignore");
-                        System.out.println("User "+msg[3]);
-                        for (String n : users.get(msg[3]).getNotificacoes()){
+                        System.out.println("User " + msg[3]);
+                        for (String n : users.get(msg[3]).getNotificacoes()) {
                             System.out.println(n);
                         }
                         return;

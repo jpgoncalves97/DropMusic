@@ -58,6 +58,9 @@ public class album implements Serializable {
     public void setAuthors(ArrayList<author> authors) {
         this.authors = authors;
     }
+    public ArrayList<String> getEditores() {
+        return editores;
+    }
 
     public ArrayList<author> getAuthors() {
         return authors;
