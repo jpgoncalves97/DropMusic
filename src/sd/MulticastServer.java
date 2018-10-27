@@ -30,9 +30,10 @@ class MulticastServer extends Thread implements Serializable {
     private ArrayList<File> fileMusicas;
     private LinkedList<String> requests;
 
-    public MulticastServer(int tcp_port) {
+    public MulticastServer(String path, int tcp_port) {
         super();
-        mainPath = "C:/multicast/";
+        TCPHandler(TCP_PORT);
+        mainPath = path;
         userPath = mainPath + "users";
         albumPath = mainPath + "albuns";
         authorPath = mainPath + "authors";
@@ -48,7 +49,6 @@ class MulticastServer extends Thread implements Serializable {
         }*/
         System.out.println("Server id# " + id);
 
-        TCPHandler(TCP_PORT);
 
         File[] temp = new File(musicFilePath).listFiles();
         System.out.println("Musicas");
@@ -189,9 +189,18 @@ class MulticastServer extends Thread implements Serializable {
     }
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("TCP_PORT = ");
-        new MulticastServer(sc.nextInt());
+        if (args.length < 2){
+            System.out.println("Bad args");
+            return;
+        }
+        int tcp;
+        try {
+            tcp = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e){
+            System.out.println("Bad TCP PORT");
+            return;
+        }
+        new MulticastServer(args[0], tcp);
     }
 
     public void readUserFile() {
@@ -267,6 +276,7 @@ class MulticastServer extends Thread implements Serializable {
                     serverSocket = new ServerSocket(port);
                 } catch (IOException e) {
                     System.out.println("Failed to open TCP Server socket\n" + e);
+                    System.exit(1);
                     return;
                 }
                 while (true) {
