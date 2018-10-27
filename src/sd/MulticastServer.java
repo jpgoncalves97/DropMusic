@@ -384,7 +384,6 @@ class MulticastServer extends Thread implements Serializable {
                         } else {
                             u1.setOnline(true);
                             sendString(socket, id + ";response;login;true;" + (u1.isEditor() ? "true" : "false"));
-                            sendNotifications(u1);
                         }
                         return;
                     case "logout":

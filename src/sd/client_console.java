@@ -23,6 +23,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
     private static rmi_interface_client client_console;
     private static String input;
     private static boolean logged, editor,redirect;
+    private static String musicFilePath = "C:/Users/j/Desktop/musica_cliente";
 
 
     client_console() throws RemoteException {
@@ -146,9 +147,11 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         logged = false;
                                         System.out.println("Nao entrou!");
                                     } else {
-                                        //System.out.println("subscribed");
-                                        //System.out.println("cp");
                                         logged = true;
+                                        String notificacoes = client_console.send_one_return_str("request;notification;"+user_name);
+                                        String notify[] = notificacoes.split(";");
+                                        if (notify.length >= 5)
+                                            System.out.println("Notificações: \n" + notify[4]);
                                         System.out.println("Entrou!");
                                         if (temp % 10 == 1) {
                                             editor = true;
@@ -219,7 +222,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
 
 
                                 } else {//procurar musicas-----------------
-                                    System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical\n4-nome da musica");
+                                    System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical");
                                     int t = read_int();
                                     if (t == -1) {
                                         System.out.println("input errado");
@@ -230,7 +233,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     if (t == 1) search = "artista";
                                     else if (t == 2) search = "album";
                                     else if (t == 3) search = "genero";
-                                    else if (t == 4) search = "nome";
                                     else {
                                         System.out.println("erro");
                                         break;
@@ -433,64 +435,13 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 break;
                             }
                             case "7": {//editar info de musicas
-                                if (!logged ) break;
-                                if(!editor) break;
-                                System.out.println("Editar info musicas");
-                                System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical\n 4-nome da musica");
-                                int t = read_int();
-                                if (t == -1) {
-                                    System.out.println("input errado");
-                                    break;
-                                }
-                                String search = "";
-                                //artista/genero/album
-                                if (t == 1) search = "artista";
-                                else if (t == 2) search = "album";
-                                else if (t == 3) search = "genero";
-                                else if (t == 4) search = "nome";
-                                else {
-                                    System.out.println("erro");
-                                    break;
-                                }
-                                System.out.println("escreva aqui:");
-                                String str = new String("request;music_search;" + user_name + ";" + search + ";" + scan.nextLine());
-                                //System.out.println("sent>> " + str);
+                                if (logged && editor) break;
+                                System.out.println("editar info musicas");
 
-                                String arr[] = (client_console.send_one_return_str(str)).split(";");
-                                //System.out.println("cp");
-                                for (int i = 0; i < Integer.parseInt(arr[3]); i++) {
-                                    System.out.println(i + "->" + arr[4 + i]);
-                                }
-                                System.out.println("Escolha uma musica, para editar informaçao:");
-                                int i = read_int();
-                                if ((0 <= i) && (i < Integer.parseInt(arr[3]))) {
-                                    str = client_console.send_one_return_str("request;details;musica;" + arr[4 + i]);
-                                } else {
-                                    System.out.println("input errado");
-                                    break;
-                                }
-                                System.out.println("Detalhes:\n" + str.split(";")[3]);
-                                /*request;edit;username;music;nome;letra;alteracao
-                                request;edit;username;music;nome;nome;alteracao*/
-                                System.out.println("Editar nome[0] ou letra[1]?");
-                                String changestr;
-                                int change = read_int();
-                                if ((change == 0)) {
-                                    changestr = "nome";
-                                } else if (change == 1) {
-                                    changestr = "letra";
-                                }else{
-                                    System.out.println("Input errado");
-                                    break;
-                                }
-                                System.out.println("noda informacao:");
-                                String newstr = scan.nextLine();
-                                client_console.send_all_return_str("request;edit;"+user_name+";music;"+arr[4+i]+";"+changestr+";"+newstr);
                                 break;
                             }
                             case "8": {//editar info de albuns
-                                if (!logged ) break;
-                                if(!editor) break;
+                                if (logged && editor) break;
                                 System.out.println("Editar info de albuns");
                                 System.out.println("Procurar o album por:\n 1-nome do album\n 2-artista\n 3-nome da musica");
                                 int t = read_int();
@@ -528,7 +479,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     System.out.println("input errado");
                                     break;
                                 }
-                                System.out.println("Detalhes:\n"+str);
                                 /*request;edit;username;album;nome;nome;alteracao
                                 request;edit;username;album;nome;genero;alteracao
                                 request;edit;username;album;nome;descricao;alteracao*/
@@ -545,80 +495,23 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     System.out.println("Input errado");
                                     break;
                                 }
-                                System.out.println("nova informacao:");
+                                System.out.println("Escreva a mudanca:");
                                 String newstr = scan.nextLine();
                                 client_console.send_all_return_str("request;edit;"+user_name+";album;"+arr[4+i]+";"+changestr+";"+newstr);
+                                client_console.notify("O utilizador "+user_name+" alterou o album "+ arr[4+i]);
                                 break;
                             }
                             case "9": {//editar info de artisitas
-                                if (!logged ) break;
-                                if(!editor) break;
-                                System.out.println("Editar info artistas");
-                                if (!logged) {
-                                    break;
-                                }
-                                System.out.println("Procurar artistas por:\n 1-nome do artista\n 2-nome do album\n 3-nome da musica");
-                                int t = read_int();
-                                if (t == -1) break;
+                                if (logged && editor) break;
+                                System.out.println("editar info artistas");
 
-                                String search = "";
-                                if (t == 1) search = "artista";
-                                else if (t == 2) search = "album";
-                                else if (t == 3) search = "musica";
-                                if (search == "") break;
 
-                                System.out.println("escreva aqui:");
-                                String word = scan.nextLine();
-                                /*request;artist_search;album/artista/musica;nome(album/artista/music)
-                                response;artist_search;int item_count;String[item_count] nome_albuns*/
-                                String str = "request;artist_search;" + search + ";" + word;
-                                str = client_console.send_one_return_str(str);
-                                System.out.println("sent>> " + str);
-                                String arr[] = (client_console.send_one_return_str(str)).split(";");
-                                if (Integer.parseInt(arr[3]) == 0) {
-                                    System.out.println("Nao foram encrotados artistas");
-                                    break;
-                                }
-                                for (int i = 0; i < Integer.parseInt(arr[3]); i++) {
-                                    System.out.println(i + "->" + arr[4 + i]);
-                                }
-                                System.out.println("escolha um album, para visao detalhada:");
-                                int i = read_int();
-                                if (i == -1) {
-                                    System.out.println("input errado");
-                                    break;
-                                }
-                                if ((0 <= i) && (i < Integer.parseInt(arr[3]))) {
-                                    str = client_console.send_one_return_str("request;details;artista;" + arr[4 + i]);
-                                } else {
-                                    System.out.println("input errado");
-                                    break;
-                                }
-                                System.out.println("Detalhes:\n" + str.split(";")[3]);
-                                /*request;edit;username;author;nome;alteracao*/
-                                System.out.println("Editar nome[0]?");
-                                String changestr;
-                                int change = read_int();
-                                if ((change == 0)) {
-                                    changestr = "nome";
-                                }else{
-                                    System.out.println("Input errado");
-                                    break;
-                                }
-                                System.out.println("nova informacao:");
-                                String newstr = scan.nextLine();
-                                client_console.send_all_return_str("request;edit;"+user_name+";author;"+arr[4+i]+";"+changestr+";"+newstr);
                                 break;
                             }
                             case "10": {//baixar e publicar musica
                                 if (logged) {
                                     Socket socket = null;
                                     try {
-                                        System.out.println("caminho da pasta da musica:");
-                                        String musicFilePath = scan.nextLine();
-                                        //String musicFilePath = "C:/Users/j/Desktop/musica_cliente";
-                                        //pasta com musicas
-
                                         System.out.println("[0] Upload\n[1] Download");
 
                                         int temp = read_int();
@@ -633,7 +526,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                             musicas = new ArrayList<>();
                                         } else {
                                             musicas = new ArrayList<>(Arrays.asList(files));
-
                                         }
                                         int tcp_port = client_console.get_tcp_port();
                                         System.out.println(tcp_port);
@@ -668,10 +560,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                 boolean boolbanda;
                                                 if(banda == 0){
                                                     System.out.println("escreva o nome da banda");
-                                                    boolbanda = false;
+                                                    boolbanda = true;
                                                 }
                                                 else if(banda == 1){
-                                                    boolbanda = true;
+                                                    boolbanda = false;
                                                     System.out.println("escreva o nome do autor");
                                                 }
                                                 else {
@@ -681,7 +573,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                 String bandaousutor = scan.nextLine();
                                                 System.out.println("Quais sao as lyrics?");
                                                 String lyrics = scan.nextLine();
-                                                String pacote_String = newmusicname + ";" + boolbanda + ";" + bandaousutor + ";" + lyrics;
+                                                String pacote_String = newmusicname + ";" + Boolean.toString(boolbanda) + ";" + bandaousutor + ";" + lyrics;
                                                 client_console.send_all_return_str("request;upload;"+user_name+";"+pacote_String);
                                                 out.write(f.getName().getBytes());
                                                 TCP.uploadFile(f, out);
@@ -773,9 +665,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         System.out.println("input errado");
                                         break;
                                     }
-                                    boolean publico;
                                     if(inpt == 0){
-                                        publico = true;
                                         client_console.send_one_return_str("request;share;"+ nome_musica+";true");
                                     }else {
                                         String[] res = client_console.send_one_return_str("request;user_list").split(";");
@@ -788,13 +678,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                             break;
                                         }
                                         client_console.send_one_return_str("request;share;"+ nome_musica+";false;" + res[4 + choice]);
-                                        System.out.println("request;share;"+ nome_musica+";false;" + res[4 + choice]);
-
-
                                     }
-
                                     //request;share;filename;username
-
                                 }
                                 break;
                             }

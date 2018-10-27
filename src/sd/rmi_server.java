@@ -157,6 +157,12 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         this.clientes.add(c);
         this.iseditor.add(editor);
         this.usernames.add(username);
+        String[] notificacao = send_one_return_str("request;notification;"+username).split(";");
+        for (String n : notificacao)
+            System.out.println(n);
+        if (notificacao.length >= 5){
+            sendMsg(username, notificacao[4]);
+        }
     }
 
     //#1
@@ -393,7 +399,6 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
