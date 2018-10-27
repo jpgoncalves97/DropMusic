@@ -14,7 +14,7 @@ response;logout;true
 #2 Gerir artistas, álbuns e músicas
 request;edit;username;music;nome;letra;alteracao
 request;edit;username;music;nome;nome;alteracao
-request;edit;username;author;nome;alteracao
+request;edit;username;author;nome;nome;alteracao
 request;edit;username;album;nome;nome;alteracao
 request;edit;username;album;nome;genero;alteracao
 request;edit;username;album;nome;descricao;alteracao
