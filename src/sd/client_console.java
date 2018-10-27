@@ -103,8 +103,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             System.out.println("10 -> baixar ou publicar musica");
                             System.out.println("11 -> partilhar musica com outro cliente");
                             System.out.println("12 -> ver playlists");
-                            System.out.println("13 -> adicionar musicas a playlists");
-                            
+                            System.out.println("13 -> criar playlist");
+                            System.out.println("14 -> adicionar musicas a playlists");
+                            System.out.println("15 -> apagar playlist");
+
                         }
 
                         if(redirect){
@@ -412,7 +414,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 break;
                             }
                             case "6": {//promover user to editor
-                                if (!logged || !editor) break;
+                                if (!logged ) break;
+                                if (!editor) break;
                                 /*request;non_editor_list
                                 response;non_editor_list;int n_users; String username[n_users]
                                 request;give_editor;username*/
@@ -439,7 +442,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 break;
                             }
                             case "7": {//editar info de musicas
-                                if (logged && editor) break;
+                                if (!logged ) break;
+                                if (!editor) break;
                                 System.out.println("Editar info musicas");
                                 System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical\n 4-nome");
                                 int t = read_int();
@@ -495,7 +499,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 break;
                             }
                             case "8": {//editar info de albuns
-                                if (logged && editor) break;
+                                if (!logged ) break;
+                                if (!editor) break;
                                 System.out.println("Editar info de albuns");
                                 System.out.println("Procurar o album por:\n 1-nome do album\n 2-artista\n 3-nome da musica");
                                 int t = read_int();
@@ -556,7 +561,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 break;
                             }
                             case "9": {//editar info de artisitas
-                                if (logged && editor) break;
+                                if (!logged ) break;
+                                if (!editor) break;
                                 System.out.println("Editar info artistas");
                                 System.out.println("Procurar artistas por:\n 0-nome do artista\n 1-descriçao do artista\n 2- nome da musica");
                                 int t = read_int();
@@ -791,6 +797,98 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 }
                                 break;
                             }
+                            case "12":{
+                                if (!logged) break;
+                                //ver playlists
+                                System.out.println("Ver playlists publicas[0] ou privadas[1]?");
+                                /*request;user_playlists;username
+                                response;user_playlists;username;int count;nome_playlist[count]
+                                request;get_playlists;username
+                                response;get_playlists;username;int count;nome_playlist[count]*/
+                                int choice = read_int();
+                                String str = "";
+                                if (choice == 0){
+                                    str = client_console.send_one_return_str("request;get_playlists;"+user_name);
+                                }else if (choice == 1){
+                                    str = client_console.send_one_return_str("request;user_playlists;"+user_name);
+                                }else{
+                                    System.out.println("input errado");
+                                }
+
+                                String arr[] = str.split(";");
+                                for (int i = 0; i < Integer.parseInt(arr[4]); i++) {
+                                    System.out.println(i + "->" + arr[5 + i]);
+                                }
+                                break;
+
+                            }
+                            case "13":{
+                                if (!logged) break;
+                                //criar playlists
+                                System.out.println("Criar uma playlist");
+                                System.out.println("Nome da playlist:");
+                                String nome = scan.nextLine();
+                                System.out.println("Criar uma playlist publicas[0] ou privadas[1]?");
+                                int choice = read_int();
+                                if (choice == 0){
+                                    client_console.send_all_return_str("request;create_playlist;"+user_name+";"+nome+";false");
+                                }else if (choice == 1){
+                                    client_console.send_all_return_str("request;create_playlist;"+user_name+";"+nome+";true");
+                                }else{
+                                    System.out.println("input errado");
+                                }
+                                break;
+
+                            }
+                            case "14":{
+                                if (!logged) break;
+                                //adicionar musicas a playlists
+                                System.out.println("Adicionar musicas a uma playlist");
+                                System.out.println("Escolha a playlist");
+                                String str = client_console.send_one_return_str("request;user_playlists;"+user_name);
+                                String arr[] = str.split(";");
+                                for (int i = 0; i < Integer.parseInt(arr[4]); i++) {
+                                    System.out.println(i + "->" + arr[5 + i]);
+                                }
+                                int choice = read_int();
+                                if(choice == -1 || (choice<0) || (choice>Integer.parseInt(arr[4]))){
+                                    System.out.println("input errado");
+                                    break;
+                                }
+
+                                str = client_console.send_one_return_str("request;music_list;"+user_name);
+                                String arr2[] = str.split(";");
+                                for (int i = 0; i < Integer.parseInt(arr2[3]); i++) {
+                                    System.out.println(i + "->" + arr2[4 + i]);
+                                }
+                                int choice2 = read_int();
+                                if(choice2 == -1 || (choice2<0) || (choice2>Integer.parseInt(arr[4]))){
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                //request;add_to_playlist;username;nome_playlist;nome_musica
+                                client_console.send_all_return_str("request;add_to_playlist;"+user_name+";"+arr[5+choice]+";"+arr2[4+choice2]);
+
+                                break;
+                            }
+                            case "15":{
+                                if (!logged) break;
+                                //apagar playlists
+                                System.out.println("Apagar uma playlist");
+                                System.out.println("Escolha a playlist:");
+                                String str = client_console.send_one_return_str("request;user_playlists;"+user_name);
+                                String arr[] = str.split(";");
+                                for (int i = 0; i < Integer.parseInt(arr[4]); i++) {
+                                    System.out.println(i + "->" + arr[5 + i]);
+                                }
+                                int choice = read_int();
+                                if(choice == -1 || (choice<0) || (choice>Integer.parseInt(arr[4]))){
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                client_console.send_all_return_str("request;delete_playlist;"+user_name+";"+arr[5+choice]);
+                                break;
+                            }
                         }
                     } catch (RemoteException ex) {
                         try {
@@ -800,6 +898,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             e.printStackTrace();
                         }
                     }
+                    if(logged)
+                        scan.nextLine();
                 }
             }
         }).start();
