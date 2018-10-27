@@ -19,8 +19,8 @@ request;edit;username;album;nome;nome;alteracao
 request;edit;username;album;nome;genero;alteracao
 request;edit;username;album;nome;descricao;alteracao
 
-#3 Pesquisar músicas
-request;music_search;username;artista/genero_musical/album;String informacao
+#3 Pesquisar músicas && nome = nomne da musica
+request;music_search;username;artista/genero_musical/album/nome;String informacao
 response;music_search;int item_count;String[item_count] nome_musicas
 
 #3.5 pesquisar albuns no caso de ser um artista podem haver muitos albuns para mostrar, a opçao album é tipo um excerto do nome completo do album pra procurar

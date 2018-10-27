@@ -219,10 +219,9 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    ArrayList<String> ids = getServerIds();
-                    String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
-                    System.out.println("Sending to id: " + id);
-                    MulticastServer.sendString(socket, new String(id + ";request;login;" + username + ";" + password));
+                    System.out.println("Sending to all");
+                    System.out.println("sent: 0;request;login;" + username + ";" + password);
+                    MulticastServer.sendString(socket, new String("0;request;login;" + username + ";" + password));
                     String response;
                     do {
                         response = MulticastServer.receiveString(socket);
@@ -250,6 +249,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             }
             String str = msg.getMsg();
             String[] temp = str.split(";");
+            if(temp.length == 3 ) return 0;
             if (temp[3].equals("false")) {
                 return 0;
             } else {

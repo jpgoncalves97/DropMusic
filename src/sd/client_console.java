@@ -149,9 +149,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         //System.out.println("subscribed");
                                         //System.out.println("cp");
                                         logged = true;
-                                        String notificacoes = client_console.send_one_return_str("request;notification;"+user_name);
-                                        String notify[] = notificacoes.split(";");
-                                        //System.out.println(notify[4]);
                                         System.out.println("Entrou!");
                                         if (temp % 10 == 1) {
                                             editor = true;
@@ -222,7 +219,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
 
 
                                 } else {//procurar musicas-----------------
-                                    System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical");
+                                    System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical\n4-nome da musica");
                                     int t = read_int();
                                     if (t == -1) {
                                         System.out.println("input errado");
@@ -233,6 +230,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     if (t == 1) search = "artista";
                                     else if (t == 2) search = "album";
                                     else if (t == 3) search = "genero";
+                                    else if (t == 4) search = "nome";
                                     else {
                                         System.out.println("erro");
                                         break;
@@ -435,13 +433,64 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 break;
                             }
                             case "7": {//editar info de musicas
-                                if (logged && editor) break;
-                                System.out.println("editar info musicas");
+                                if (!logged ) break;
+                                if(!editor) break;
+                                System.out.println("Editar info musicas");
+                                System.out.println("Procurar musicas por:\n 1-nome do artista\n 2-album\n 3-genero musical\n 4-nome da musica");
+                                int t = read_int();
+                                if (t == -1) {
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                String search = "";
+                                //artista/genero/album
+                                if (t == 1) search = "artista";
+                                else if (t == 2) search = "album";
+                                else if (t == 3) search = "genero";
+                                else if (t == 4) search = "nome";
+                                else {
+                                    System.out.println("erro");
+                                    break;
+                                }
+                                System.out.println("escreva aqui:");
+                                String str = new String("request;music_search;" + user_name + ";" + search + ";" + scan.nextLine());
+                                //System.out.println("sent>> " + str);
 
+                                String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                //System.out.println("cp");
+                                for (int i = 0; i < Integer.parseInt(arr[3]); i++) {
+                                    System.out.println(i + "->" + arr[4 + i]);
+                                }
+                                System.out.println("Escolha uma musica, para editar informaçao:");
+                                int i = read_int();
+                                if ((0 <= i) && (i < Integer.parseInt(arr[3]))) {
+                                    str = client_console.send_one_return_str("request;details;musica;" + arr[4 + i]);
+                                } else {
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                System.out.println("Detalhes:\n" + str.split(";")[3]);
+                                /*request;edit;username;music;nome;letra;alteracao
+                                request;edit;username;music;nome;nome;alteracao*/
+                                System.out.println("Editar nome[0] ou letra[1]?");
+                                String changestr;
+                                int change = read_int();
+                                if ((change == 0)) {
+                                    changestr = "nome";
+                                } else if (change == 1) {
+                                    changestr = "letra";
+                                }else{
+                                    System.out.println("Input errado");
+                                    break;
+                                }
+                                System.out.println("noda informacao:");
+                                String newstr = scan.nextLine();
+                                client_console.send_all_return_str("request;edit;"+user_name+";music;"+arr[4+i]+";"+changestr+";"+newstr);
                                 break;
                             }
                             case "8": {//editar info de albuns
-                                if (logged && editor) break;
+                                if (!logged ) break;
+                                if(!editor) break;
                                 System.out.println("Editar info de albuns");
                                 System.out.println("Procurar o album por:\n 1-nome do album\n 2-artista\n 3-nome da musica");
                                 int t = read_int();
@@ -479,6 +528,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     System.out.println("input errado");
                                     break;
                                 }
+                                System.out.println("Detalhes:\n"+str);
                                 /*request;edit;username;album;nome;nome;alteracao
                                 request;edit;username;album;nome;genero;alteracao
                                 request;edit;username;album;nome;descricao;alteracao*/
@@ -495,16 +545,69 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     System.out.println("Input errado");
                                     break;
                                 }
-                                System.out.println("Escreva a mudanca:");
+                                System.out.println("nova informacao:");
                                 String newstr = scan.nextLine();
                                 client_console.send_all_return_str("request;edit;"+user_name+";album;"+arr[4+i]+";"+changestr+";"+newstr);
                                 break;
                             }
                             case "9": {//editar info de artisitas
-                                if (logged && editor) break;
-                                System.out.println("editar info artistas");
+                                if (!logged ) break;
+                                if(!editor) break;
+                                System.out.println("Editar info artistas");
+                                if (!logged) {
+                                    break;
+                                }
+                                System.out.println("Procurar artistas por:\n 1-nome do artista\n 2-nome do album\n 3-nome da musica");
+                                int t = read_int();
+                                if (t == -1) break;
 
+                                String search = "";
+                                if (t == 1) search = "artista";
+                                else if (t == 2) search = "album";
+                                else if (t == 3) search = "musica";
+                                if (search == "") break;
 
+                                System.out.println("escreva aqui:");
+                                String word = scan.nextLine();
+                                /*request;artist_search;album/artista/musica;nome(album/artista/music)
+                                response;artist_search;int item_count;String[item_count] nome_albuns*/
+                                String str = "request;artist_search;" + search + ";" + word;
+                                str = client_console.send_one_return_str(str);
+                                System.out.println("sent>> " + str);
+                                String arr[] = (client_console.send_one_return_str(str)).split(";");
+                                if (Integer.parseInt(arr[3]) == 0) {
+                                    System.out.println("Nao foram encrotados artistas");
+                                    break;
+                                }
+                                for (int i = 0; i < Integer.parseInt(arr[3]); i++) {
+                                    System.out.println(i + "->" + arr[4 + i]);
+                                }
+                                System.out.println("escolha um album, para visao detalhada:");
+                                int i = read_int();
+                                if (i == -1) {
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                if ((0 <= i) && (i < Integer.parseInt(arr[3]))) {
+                                    str = client_console.send_one_return_str("request;details;artista;" + arr[4 + i]);
+                                } else {
+                                    System.out.println("input errado");
+                                    break;
+                                }
+                                System.out.println("Detalhes:\n" + str.split(";")[3]);
+                                /*request;edit;username;author;nome;alteracao*/
+                                System.out.println("Editar nome[0]?");
+                                String changestr;
+                                int change = read_int();
+                                if ((change == 0)) {
+                                    changestr = "nome";
+                                }else{
+                                    System.out.println("Input errado");
+                                    break;
+                                }
+                                System.out.println("nova informacao:");
+                                String newstr = scan.nextLine();
+                                client_console.send_all_return_str("request;edit;"+user_name+";author;"+arr[4+i]+";"+changestr+";"+newstr);
                                 break;
                             }
                             case "10": {//baixar e publicar musica
