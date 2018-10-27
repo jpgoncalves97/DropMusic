@@ -330,7 +330,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 if (t == 1) search = "artista";
                                 else if (t == 2) search = "album";
                                 else if (t == 3) search = "musica";
-                                if (search == "") break;
+                                if (search.equals("")) break;
 
                                 System.out.println("escreva aqui:");
                                 String word = scan.nextLine();
