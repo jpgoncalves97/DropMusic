@@ -581,7 +581,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 if (t == 1) search = "artista";
                                 else if (t == 2) search = "album";
                                 else if (t == 3) search = "musica";
-                                if (search == "") break;
+                                if (search.equals("")) break;
 
                                 System.out.println("escreva aqui:");
                                 String word = scan.nextLine();
@@ -834,7 +834,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 System.out.println("Escolha uma playlist para ver as musicas:");
                                 int param = read_int();
                                 if((0<=param) && (param<Integer.parseInt(arr[4]))){
-                                    System.out.println(client_console.send_one_return_str("request;playlist_details;"+arr[5+param]));
+                                    System.out.println(client_console.send_one_return_str("request;playlist_details;"+arr[5+param]).split(";")[3]);
                                 }
                                 break;
 
@@ -879,7 +879,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     System.out.println(i + "->" + arr2[4 + i]);
                                 }
                                 int choice2 = read_int();
-                                if(choice2 == -1 || (choice2<0) || (choice2>Integer.parseInt(arr[4]))){
+                                if(choice2 == -1 || (choice2<0) || (choice2>Integer.parseInt(arr2[3]))){
                                     System.out.println("input errado");
                                     break;
                                 }
