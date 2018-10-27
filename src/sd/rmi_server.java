@@ -397,4 +397,18 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }
     }
 
+    public String get_notifications(String username){
+        /*request;notification;username;
+        response;notification;username;mensagem*/
+        System.out.println("SENDING NOTIFICATIONS TO "+username);
+        String notification = send_all_return_str("request;notification;"+username);
+        String arr[] = notification.split(";");
+        if(arr.length > 3){
+            return arr[4];
+        }else{
+            return "";
+        }
+
+    }
+
 }

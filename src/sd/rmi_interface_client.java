@@ -34,5 +34,7 @@ public interface rmi_interface_client extends Remote {
 
     void notify(String msg) throws RemoteException;
 
+    String get_notifications(String username) throws RemoteException;
+
 
 }
