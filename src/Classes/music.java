@@ -33,7 +33,7 @@ public class music implements Serializable {
         this.users = new ArrayList<>();
         this.album = album;
         this.lyrics = lyrics;
-        this.owner = null;
+        this.owner = username;
     }
 
     public void addUser(String user){ users.add(user); System.out.println("Added user " + user + " to music "+ nome);}

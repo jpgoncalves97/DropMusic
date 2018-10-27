@@ -32,7 +32,7 @@ public interface rmi_interface_client extends Remote {
 
     int get_tcp_port() throws RemoteException;
 
-    void notify_editors(String msg) throws RemoteException;
+    void notify(String msg) throws RemoteException;
 
 
 }

@@ -23,6 +23,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
     private static rmi_interface_client client_console;
     private static String input;
     private static boolean logged, editor,redirect;
+    private static String musicFilePath = "C:/Users/j/Desktop/musica_cliente";
 
 
     client_console() throws RemoteException {
@@ -146,12 +147,11 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         logged = false;
                                         System.out.println("Nao entrou!");
                                     } else {
-                                        //System.out.println("subscribed");
-                                        //System.out.println("cp");
                                         logged = true;
-                                        String notificacoes = client_console.send_one_return_str("request;username;"+user_name);
+                                        String notificacoes = client_console.send_one_return_str("request;notification;"+user_name);
                                         String notify[] = notificacoes.split(";");
-                                        System.out.println(notify[4]);
+                                        if (notify.length >= 5)
+                                            System.out.println("Notificações: \n" + notify[4]);
                                         System.out.println("Entrou!");
                                         if (temp % 10 == 1) {
                                             editor = true;
@@ -498,7 +498,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 System.out.println("Escreva a mudanca:");
                                 String newstr = scan.nextLine();
                                 client_console.send_all_return_str("request;edit;"+user_name+";album;"+arr[4+i]+";"+changestr+";"+newstr);
-                                client_console.notify_editors("O utilizador "+user_name+" alterou o album "+ arr[4+i]);
+                                client_console.notify("O utilizador "+user_name+" alterou o album "+ arr[4+i]);
                                 break;
                             }
                             case "9": {//editar info de artisitas
@@ -512,11 +512,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 if (logged) {
                                     Socket socket = null;
                                     try {
-                                        System.out.println("caminho da pasta da musica:");
-                                        String musicFilePath = scan.nextLine();
-                                        //String musicFilePath = "C:/Users/j/Desktop/musica_cliente";
-                                        //pasta com musicas
-
                                         System.out.println("[0] Upload\n[1] Download");
 
                                         int temp = read_int();
@@ -531,7 +526,6 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                             musicas = new ArrayList<>();
                                         } else {
                                             musicas = new ArrayList<>(Arrays.asList(files));
-
                                         }
                                         int tcp_port = client_console.get_tcp_port();
                                         System.out.println(tcp_port);
@@ -566,10 +560,10 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                 boolean boolbanda;
                                                 if(banda == 0){
                                                     System.out.println("escreva o nome da banda");
-                                                    boolbanda = false;
+                                                    boolbanda = true;
                                                 }
                                                 else if(banda == 1){
-                                                    boolbanda = true;
+                                                    boolbanda = false;
                                                     System.out.println("escreva o nome do autor");
                                                 }
                                                 else {
@@ -579,7 +573,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                                 String bandaousutor = scan.nextLine();
                                                 System.out.println("Quais sao as lyrics?");
                                                 String lyrics = scan.nextLine();
-                                                String pacote_String = newmusicname + ";" + boolbanda + ";" + bandaousutor + ";" + lyrics;
+                                                String pacote_String = newmusicname + ";" + Boolean.toString(boolbanda) + ";" + bandaousutor + ";" + lyrics;
                                                 client_console.send_all_return_str("request;upload;"+user_name+";"+pacote_String);
                                                 out.write(f.getName().getBytes());
                                                 TCP.uploadFile(f, out);
@@ -671,9 +665,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                         System.out.println("input errado");
                                         break;
                                     }
-                                    boolean publico;
                                     if(inpt == 0){
-                                        publico = true;
                                         client_console.send_one_return_str("request;share;"+ nome_musica+";true");
                                     }else {
                                         String[] res = client_console.send_one_return_str("request;user_list").split(";");
@@ -686,13 +678,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                             break;
                                         }
                                         client_console.send_one_return_str("request;share;"+ nome_musica+";false;" + res[4 + choice]);
-                                        System.out.println("request;share;"+ nome_musica+";false;" + res[4 + choice]);
-
-
                                     }
-
                                     //request;share;filename;username
-
                                 }
                                 break;
                             }

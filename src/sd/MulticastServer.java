@@ -66,17 +66,32 @@ class MulticastServer extends Thread implements Serializable {
             defaultFiles();
         }
         requests = new LinkedList<>();
-        musicas = new ArrayList<>((ArrayList) readFromFile(musicPath));
         users = new HashMap<>(100);
-        authors = new ArrayList<>((ArrayList) readFromFile(authorPath));
-        albums = new ArrayList<>((ArrayList) readFromFile(albumPath));
-        bands = new ArrayList<>((ArrayList) readFromFile(bandPath));
-        readUserFile();
+        try {
+            musicas = new ArrayList<>((ArrayList) readFromFile(musicPath));
+        } catch (ClassCastException e) {
+            musicas = new ArrayList<>(Arrays.asList((music[]) readFromFile(musicPath)));
+        }
+        try {
+            authors = new ArrayList<>((ArrayList) readFromFile(authorPath));
+        } catch (ClassCastException e) {
+            authors = new ArrayList<>(Arrays.asList((author[]) readFromFile(authorPath)));
+        }
+        try {
+            albums = new ArrayList<>((ArrayList) readFromFile(albumPath));
+        } catch (ClassCastException e) {
+            albums = new ArrayList<>(Arrays.asList((album[]) readFromFile(albumPath)));
+        }
 
+        try {
+            bands = new ArrayList<>((ArrayList) readFromFile(bandPath));
+        } catch (ClassCastException e) {
+            bands = new ArrayList<>(Arrays.asList((band[]) readFromFile(bandPath)));
+        }
+        readUserFile();
         socket = newMulticastSocket();
         newReceiverThread();
         newSenderThread();
-
         listAllFiles();
     }
 
@@ -364,7 +379,7 @@ class MulticastServer extends Thread implements Serializable {
                         return;
                     case "login":
                         user u1 = users.get(msg[3]);
-                        if (u1 == null || !u1.getPassword().equals(msg[4])) {
+                        if (u1 == null || !u1.getPassword().equals(msg[4]) || u1.isOnline()) {
                             sendString(socket, id + ";response;login;false;false");
                         } else {
                             u1.setOnline(true);
@@ -645,7 +660,6 @@ class MulticastServer extends Thread implements Serializable {
                             }
                         }
                     case "give_editor":
-                        System.out.println("giving editor\n" + msg[3] + " " + users.get(msg[3]).isOnline());
                         users.get(msg[3]).setEditor(true);
                         String notificacao = "Obteve privilégios de editor";
                         users.get(msg[3]).addNotificacao(notificacao);
@@ -715,6 +729,7 @@ class MulticastServer extends Thread implements Serializable {
                                 }
                             }
                         }
+                        writeToFile(musicPath, musicas);
                         sendString(socket, id + "response;ignore");
                         return;
                     case "user_songs":

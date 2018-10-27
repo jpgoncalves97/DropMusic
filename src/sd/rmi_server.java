@@ -140,11 +140,11 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
     @Override
-    public void unsubscribe(String user) throws RemoteException{
+    public void unsubscribe(String user) throws RemoteException {
         int index = usernames.indexOf(user);
-        System.out.println("o client "+user+" desligou-se");
-        send_all("request;logout;"+user);
-        if(index != -1) {
+        System.out.println("o client " + user + " desligou-se");
+        send_all("request;logout;" + user);
+        if (index != -1) {
             clientes.remove(index);
             iseditor.remove(index);
             usernames.remove(index);
@@ -207,7 +207,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         //return true;
     }
 
-    public int get_tcp_port(){
+    public int get_tcp_port() {
         String str = send_one_return_str("request;tcp_port");
         return Integer.parseInt(str.split(";")[3]);
     }
@@ -227,7 +227,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     do {
                         response = MulticastServer.receiveString(socket);
                         //System.out.println(response);
-                    } while (response.contains("request") );
+                    } while (response.contains("request"));
                     System.out.println("Received: " + response);
                     synchronized (msg) {
                         msg.setMsg(response);
@@ -253,8 +253,11 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             if (temp[3].equals("false")) {
                 return 0;
             } else {
-                if (temp[4].equals("true")) return 11;
-                else return 10;
+                if (temp[4].equals("true")) {
+                    return 11;
+                } else {
+                    return 10;
+                }
 
             }
 
@@ -262,9 +265,9 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     }
 
     @Override
-    public String get_online_clients(){
+    public String get_online_clients() {
         String str = "";
-        for(int i = 0 ; i < usernames.size();i++){
+        for (int i = 0; i < usernames.size(); i++) {
             str += usernames.get(i) + ";";
         }
         return str;
@@ -276,7 +279,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             public void run() {
                 try {
                     System.out.println("Sending to all");
-                    MulticastServer.sendString(socket,  "0;" + str);
+                    MulticastServer.sendString(socket, "0;" + str);
                 } catch (Exception e) {
                     System.out.println(e);
                 }
@@ -295,7 +298,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     String id = ids.get(ThreadLocalRandom.current().nextInt(0, ids.size()));
                     System.out.println("Sending to all");
 
-                    MulticastServer.sendString(socket,  "0;" + str);
+                    MulticastServer.sendString(socket, "0;" + str);
                     String response;
                     do {
                         response = MulticastServer.receiveString(socket);
@@ -333,7 +336,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         }
     }
 
-    public String send_one_return_str(String str){
+    public String send_one_return_str(String str) {
         System.out.println("SEND ONE RETURN STR");
         SharedMessage msg = new SharedMessage();
         new Thread(new Runnable() {
@@ -365,34 +368,32 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         return getString(msg);
     }
 
-    public void promove_user(String username){
+    public void promove_user(String username) {
         //se estiver online recebe notificação
         System.out.println("promove_user");
-        try{
-            if(usernames.contains(username)){
+        try {
+            if (usernames.contains(username)) {
                 String notify = send_one_return_str("request;notification;" + username);
                 String arr[] = notify.split(";");
                 sendMsg(username, arr[4]);
-                System.out.println("o "+username+" foi notificado");
+                System.out.println("o " + username + " foi notificado");
+            } else {
+                System.out.println("o " + username + " nao foi notificado, porque nao esta online");
             }
-            else{
-                System.out.println("o "+username+" nao foi notificado, porque nao esta online");
-            }
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Exception in main: " + e);
         }
     }
 
-    public void notify_editors(String msg){
-        for(int i = 0 ; i < clientes.size(); i++){
-            if(iseditor.get(i) == true){
-                String notify = send_all_return_str("request;notification;"+usernames.get(i));
-                try {
-                    sendMsg(usernames.get(i),notify);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+    public void notify(String msg) {
+        for (int i = 0; i < clientes.size(); i++) {
+            String notify = send_all_return_str("request;notification;" + usernames.get(i));
+            try {
+                sendMsg(usernames.get(i), notify);
+            } catch (RemoteException e) {
+                e.printStackTrace();
             }
+
         }
     }
 
