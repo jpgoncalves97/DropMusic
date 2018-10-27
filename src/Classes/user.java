@@ -15,6 +15,7 @@ public class user implements Serializable {
     private String address;
     private int num_cc;
     private ArrayList<String> notificacoes;
+    private ArrayList<playlist> playlists;
 
     public user() {
         online = false;
@@ -32,8 +33,21 @@ public class user implements Serializable {
         this.address = address;
         this.num_cc = num_cc;
         notificacoes = new ArrayList<>();
+        playlists = new ArrayList<>();
     }
 
+    public void newPlaylist(String nome, boolean publico){
+        playlists.add(new playlist(nome, publico, this.nome));
+    }
+
+    public void addMusicToPlaylist(String nome, music m){
+        for (playlist p : playlists){
+            if (p.getNome().equals(nome)){
+                p.addMusica(m);
+                return;
+            }
+        }
+    }
     public boolean isOnline() {
         return online;
     }
@@ -82,7 +96,7 @@ public class user implements Serializable {
     public String getPassword() {
         return password;
     }
-
+    public ArrayList<playlist> getPlaylists(){ return playlists; }
     public String getAddress() {
         return address;
     }

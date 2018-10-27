@@ -64,3 +64,11 @@ response;user_songs;int count; String nomes[count]
 
 request;share;filename;bool publico; username
 request;user_list
+
+# Playlists
+request;user_playlists;username
+response;user_playlists;username;int count;nome_playlist[count]
+request;get_playlists;username
+response;get_playlists;username;int count;nome_playlist[count]
+request;create_playlist;username;nome_playlist;bool privado
+request;add_to_playlist;username;nome_playlist;nome_musica
