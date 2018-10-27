@@ -400,5 +400,5 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             }
         }
     }
-    
+
 }

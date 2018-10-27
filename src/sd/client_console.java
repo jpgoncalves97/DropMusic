@@ -84,16 +84,16 @@ public class client_console extends UnicastRemoteObject implements client_interf
                     System.out.flush();
                     try {
                         if (!logged) {
-                            System.out.println("0 -> -sair");
-                            System.out.println("1 -> -logar");
-                            System.out.println("2 -> -registar utilizadores");
+                            System.out.println("0 -> sair");
+                            System.out.println("1 -> logar");
+                            System.out.println("2 -> registar utilizadores");
                         } else {
-                            System.out.println("0 -> -sair e desligar cliente");
-                            System.out.println("1 -> -desconectar-se");
-                            System.out.println("2 -> -procurar musicas e detalhes");//a partir d dados paciais, para mostrar so os detalhes da musica
-                            System.out.println("3 -> -procurar albuns e detalhes");//same
-                            System.out.println("4 -> -procurar artistas e detalhes");//ssame
-                            System.out.println("5 -> -escrever critica num album");
+                            System.out.println("0 -> sair e desligar cliente");
+                            System.out.println("1 -> desconectar-se");
+                            System.out.println("2 -> procurar musicas e detalhes");//a partir d dados paciais, para mostrar so os detalhes da musica
+                            System.out.println("3 -> procurar albuns e detalhes");//same
+                            System.out.println("4 -> procurar artistas e detalhes");//ssame
+                            System.out.println("5 -> escrever critica num album");
                             if (editor) {
                                 System.out.println("6 -> -promove user");
                                 System.out.println("7 -> editar info de musicas");
@@ -102,6 +102,9 @@ public class client_console extends UnicastRemoteObject implements client_interf
                             }
                             System.out.println("10 -> baixar ou publicar musica");
                             System.out.println("11 -> partilhar musica com outro cliente");
+                            System.out.println("12 -> ver playlists");
+                            System.out.println("13 -> adicionar musicas a playlists");
+                            
                         }
 
                         if(redirect){
