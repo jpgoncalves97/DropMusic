@@ -379,6 +379,11 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                 String notify = send_one_return_str("request;notification;" + username);
                 String arr[] = notify.split(";");
                 sendMsg(username, arr[4]);
+                try {
+                    clientes.get(usernames.indexOf(username)).change_to_editor();
+                } catch (Exception e) {
+                    System.out.println("Exception in main: " + e);
+                }
                 System.out.println("o " + username + " foi notificado");
             } else {
                 System.out.println("o " + username + " nao foi notificado, porque nao esta online");

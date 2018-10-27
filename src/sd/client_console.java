@@ -32,6 +32,11 @@ public class client_console extends UnicastRemoteObject implements client_interf
 
     public void notify_client(String str) throws RemoteException {
         System.out.println(str);
+
+    }
+
+    public void change_to_editor() throws RemoteException {
+        editor = true;
     }
 
     private static int read_int() {
@@ -144,9 +149,13 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     String username, password = "";
                                     System.out.println("Nome de Utilizador:");
                                     username = scan.nextLine();
-                                    user_name = username;
                                     System.out.println("Palavra Chave:");
                                     password = scan.nextLine();
+                                    if(username.equals("") || password.equals("")){
+                                        System.out.println("mau username ou password");
+                                        break;
+                                    }
+                                    user_name = username;
                                     int temp = client_console.login(username, password);
                                     if (temp == 0) {
                                         logged = false;
@@ -634,6 +643,8 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                             break;
                                         }
                                         ArrayList<File> musicas;
+                                        System.out.println("Escolha o diretorio da pasta de musicas:");
+                                        musicFilePath = scan.nextLine();
                                         File[] files = new File(musicFilePath).listFiles();
                                         System.out.println("Musicas na pasta escolhida");
                                         if (files == null){
@@ -819,6 +830,12 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 for (int i = 0; i < Integer.parseInt(arr[4]); i++) {
                                     System.out.println(i + "->" + arr[5 + i]);
                                 }
+                                //request;playlist_details;nome_playlist
+                                System.out.println("Escolha uma playlist para ver as musicas:");
+                                int param = read_int();
+                                if((0<=param) && (param<Integer.parseInt(arr[4]))){
+                                    System.out.println(client_console.send_one_return_str("request;playlist_details;"+arr[5+param]));
+                                }
                                 break;
 
                             }
@@ -899,6 +916,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                         }
                     }
                     if(logged)
+                        System.out.println("Clique em alguma tecla para avançar...");
                         scan.nextLine();
                 }
             }
