@@ -442,7 +442,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                     break;
                                 }
                                 if ((0 <= i) && (i < Integer.parseInt(arr[3]))) {
-                                    client_console.send_one_return_str("request;give_editor;" + arr[4 + i]);
+                                    client_console.send_all_return_str("request;give_editor;" + arr[4 + i]);
                                     client_console.promove_user(arr[4 + i]);
                                 } else {
                                     System.out.println("input errado");
@@ -802,7 +802,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                             System.out.println("input errado");
                                             break;
                                         }
-                                        client_console.send_one_return_str("request;share;"+ nome_musica+";false;" + res[4 + choice]);
+                                        client_console.send_all_return_str("request;share;"+ nome_musica+";false;" + res[4 + choice]);
                                     }
                                     //request;share;filename;username
                                 }
@@ -834,7 +834,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 System.out.println("Escolha uma playlist para ver as musicas:");
                                 int param = read_int();
                                 if((0<=param) && (param<Integer.parseInt(arr[4]))){
-                                    System.out.println(client_console.send_one_return_str("request;playlist_details;"+arr[5+param]).split(";")[3]);
+                                    System.out.println(client_console.send_all_return_str("request;playlist_details;"+arr[5+param]).split(";")[3]);
                                 }
                                 break;
 
