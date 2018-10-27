@@ -20,6 +20,7 @@ public class user implements Serializable {
     public user() {
         online = false;
         notificacoes = new ArrayList<>();
+        playlists = new ArrayList<>();
     }
 
     public user(boolean editor, int idade, String username, String password, String nome, int phone_num, String address, int num_cc) {

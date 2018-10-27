@@ -10,15 +10,22 @@ public class playlist implements Serializable {
     private boolean privado;
     private String nome;
     private String owner;
-    public playlist(String nome, boolean privado, String owner){
+
+    public playlist(String nome, boolean privado, String owner) {
         this.nome = nome;
         this.privado = privado;
         this.owner = owner;
         musicas = new ArrayList<>();
     }
 
-    public String getOwner(){ return owner; }
-    public String getNome(){ return nome; }
+    public String getOwner() {
+        return owner;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
     public ArrayList<music> getMusicas() {
         return musicas;
     }
@@ -30,7 +37,17 @@ public class playlist implements Serializable {
     public void setPrivado(boolean privado) {
         this.privado = privado;
     }
+
     public void addMusica(music musica) {
         this.musicas.add(musica);
+    }
+
+    @Override
+    public String toString() {
+        String ret = "Nome: " + nome + "\nOwner: " + owner + "\nPrivada: " + privado + "\nMusicas: \n";
+        for (music m : musicas) {
+            ret += m.getNome();
+        }
+        return ret;
     }
 }
