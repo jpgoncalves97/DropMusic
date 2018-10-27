@@ -39,7 +39,14 @@ public class user implements Serializable {
     public void newPlaylist(String nome, boolean publico){
         playlists.add(new playlist(nome, publico, this.nome));
     }
-
+    public void deletePlaylist(String nome){
+        for (int i = 0; i < playlists.size(); i++){
+            if (playlists.get(i).getNome().equals(nome)){
+                playlists.remove(i);
+                return;
+            }
+        }
+    }
     public void addMusicToPlaylist(String nome, music m){
         for (playlist p : playlists){
             if (p.getNome().equals(nome)){
