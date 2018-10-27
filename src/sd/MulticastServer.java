@@ -452,6 +452,18 @@ class MulticastServer extends Thread implements Serializable {
                                     }
                                 }
                         }
+                    case "music_list": {
+                        int count = 0;
+                        String resposta = "";
+                        for (music m : musicas){
+                            if (m.canGetMusic(msg[3])){
+                                resposta += m.getNome() + ";";
+                                count++;
+                            }
+                        }
+                        sendString(socket, id + ";response;music_list;" + count + ";" + resposta);
+                        return;
+                    }
                     case "music_search":
                         switch (msg[4]) {
                             case "nome": {
@@ -748,6 +760,58 @@ class MulticastServer extends Thread implements Serializable {
                         writeToFile(musicPath, musicas);
                         sendString(socket, id + "response;ignore");
                         return;
+
+                    case "user_playlists": {
+                        int count = 0;
+                        String resposta = "";
+                        for (playlist p : users.get(msg[3]).getPlaylists()) {
+                            count++;
+                            resposta += p.getNome() + ";";
+                        }
+                        sendString(socket, id + ";response;user_playlists;" + count + ";" + resposta);
+                        return;
+                    }
+                    case "get_playlists": {
+                        int count = 0;
+                        String resposta = "";
+                        for (String key : users.keySet()) {
+                            for (playlist p : users.get(key).getPlaylists()) {
+                                if (p.getOwner().equals(msg[3]) || !p.isPrivado()) {
+                                    count++;
+                                    resposta += p.getNome() + ";";
+                                }
+                            }
+                        }
+                        sendString(socket, id + ";response;get_playlists;" + count + ";" + resposta);
+                        return;
+                    }
+                    //request;create_playlist;username;nome_playlist;bool privado
+                    case "create_playlist":{
+                        users.get(msg[3]).newPlaylist(msg[4], Boolean.valueOf(msg[5]));
+                        sendString(socket,id + ";response;ignore");
+                        writeToFile(userPath, users);
+                        return;
+                    }
+                    case "delete_playlist": {
+                        users.get(msg[3]).deletePlaylist(msg[4]);
+                        sendString(socket, id + ";response;ignore");
+                        writeToFile(userPath, users);
+                        return;
+                    }
+                    case "add_to_playlist": {
+                        //request;add_to_playlist;username;nome_playlist;nome_musica
+                        music m2 = null;
+                        for (music m1 : musicas){
+                            if (m1.getNome().equals(msg[5])){
+                                m2 = m1;
+                                break;
+                            }
+                        }
+                        users.get(msg[3]).addMusicToPlaylist(msg[4], m2);
+                        sendString(socket, id + ";response;ignore");
+                        writeToFile(userPath, users);
+                        return;
+                    }
                     case "user_songs":
                         int count = 0;
                         String res = "";
