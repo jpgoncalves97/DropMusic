@@ -72,4 +72,7 @@ request;get_playlists;username
 response;get_playlists;username;int count;nome_playlist[count]
 request;delete_playlist;username;nome_playlist
 request;create_playlist;username;nome_playlist;bool privado
+response;create_playlist;bool sucesso
 request;add_to_playlist;username;nome_playlist;nome_musica
+request;playlist_details;username;nome_playlist
+response;playlist_details;playlist.tostring

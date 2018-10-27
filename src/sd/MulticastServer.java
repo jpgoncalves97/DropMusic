@@ -764,17 +764,34 @@ class MulticastServer extends Thread implements Serializable {
                     case "user_playlists": {
                         int count = 0;
                         String resposta = "";
-                        for (playlist p : users.get(msg[3]).getPlaylists()) {
-                            count++;
-                            resposta += p.getNome() + ";";
+                        if (users.get(msg[3]).getPlaylists() != null){
+                            for (playlist p : users.get(msg[3]).getPlaylists()) {
+                                count++;
+                                resposta += p.getNome() + ";";
+                            }
                         }
-                        sendString(socket, id + ";response;user_playlists;" + count + ";" + resposta);
+                        sendString(socket, id + ";response;user_playlists;" + msg[3] + ";" + count + ";" + resposta);
                         return;
+                    }
+                    case "playlist_details":{
+                        for (String key : users.keySet()) {
+                            if (users.get(key).getPlaylists() != null) {
+                                for (playlist p : users.get(key).getPlaylists()) {
+                                    if (p.getNome().equals(msg[3])) {
+                                        sendString(socket, id + ";response;playlist_details;" + p.toString());
+                                        return;
+                                    }
+                                }
+                            }
+                        }
                     }
                     case "get_playlists": {
                         int count = 0;
                         String resposta = "";
                         for (String key : users.keySet()) {
+                            if (users.get(key).getPlaylists() == null){
+                                continue;
+                            }
                             for (playlist p : users.get(key).getPlaylists()) {
                                 if (p.getOwner().equals(msg[3]) || !p.isPrivado()) {
                                     count++;
@@ -782,13 +799,23 @@ class MulticastServer extends Thread implements Serializable {
                                 }
                             }
                         }
-                        sendString(socket, id + ";response;get_playlists;" + count + ";" + resposta);
+                        sendString(socket, id + ";response;get_playlists;" + msg[3] + ";" + count + ";" + resposta);
                         return;
                     }
                     //request;create_playlist;username;nome_playlist;bool privado
                     case "create_playlist":{
+                        for (String key : users.keySet()){
+                            if (users.get(msg[3]).getPlaylists() != null){
+                                for (playlist p : users.get(msg[3]).getPlaylists()){
+                                    if (p.getNome().equals(msg[4])){
+                                        sendString(socket, id + ";response;create_playlist;false");
+                                        return;
+                                    }
+                                }
+                            }
+                        }
                         users.get(msg[3]).newPlaylist(msg[4], Boolean.valueOf(msg[5]));
-                        sendString(socket,id + ";response;ignore");
+                        sendString(socket,id + ";response;create_playlist;true");
                         writeToFile(userPath, users);
                         return;
                     }
