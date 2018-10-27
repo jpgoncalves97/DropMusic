@@ -381,11 +381,12 @@ class MulticastServer extends Thread implements Serializable {
                         user u1 = users.get(msg[3]);
                         if (u1 == null || !u1.getPassword().equals(msg[4]) || u1.isOnline()) {
                             sendString(socket, id + ";response;login;false;false");
+                            return;
                         } else {
                             u1.setOnline(true);
                             sendString(socket, id + ";response;login;true;" + (u1.isEditor() ? "true" : "false"));
+                            return;
                         }
-                        return;
                     case "logout":
                         users.get(msg[3]).setOnline(false);
                         sendString(socket, id + ";response;ignore");

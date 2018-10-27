@@ -65,7 +65,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                         String response;
                         do {
                             response = MulticastServer.receiveString(socket);
-                        } while (response.contains("request"));
+                        } while (response.contains("request")|| response.contains("ignore"));
                         System.out.println("Received: " + response);
                     } catch (Exception e) {
                         System.out.println(e);
@@ -177,7 +177,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     do {
                         response = MulticastServer.receiveString(socket);
                         //System.out.println(response);
-                    } while (response.contains("request"));
+                    } while (response.contains("request")|| response.contains("ignore"));
                     System.out.println("Received: " + response);
 
                     synchronized (msg) {
@@ -229,7 +229,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     do {
                         response = MulticastServer.receiveString(socket);
                         //System.out.println(response);
-                    } while (response.contains("request"));
+                    } while (response.contains("request")|| response.contains("ignore"));
                     System.out.println("Received: " + response);
                     synchronized (msg) {
                         msg.setMsg(response);
@@ -307,7 +307,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                         response = MulticastServer.receiveString(socket);
                         System.out.println(response);
                         String arr[] = response.split(";");
-                    } while (response.contains("request"));
+                    } while (response.contains("request")|| response.contains("ignore"));
                     System.out.println("Received: " + response);
 
                     synchronized (msg) {
@@ -354,7 +354,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
                     do {
                         response = MulticastServer.receiveString(socket);
                         System.out.println(response);
-                    } while (response.contains("request"));
+                    } while (response.contains("request")|| response.contains("ignore"));
                     System.out.println("Received: " + response);
 
                     synchronized (msg) {
