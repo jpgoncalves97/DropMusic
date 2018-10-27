@@ -376,7 +376,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         System.out.println("promove_user");
         try {
             if (usernames.contains(username)) {
-                String notify = send_one_return_str("request;notification;" + username);
+                String notify = send_all_return_str("request;notification;" + username);
                 String arr[] = notify.split(";");
                 sendMsg(username, arr[4]);
                 try {
