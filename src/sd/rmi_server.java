@@ -25,7 +25,6 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     private MulticastSocket socket;
     private ArrayList<client_interface> clientes = new ArrayList<>();
     private ArrayList<String> usernames = new ArrayList<>();
-    private ArrayList<Boolean> iseditor = new ArrayList<>();
 
     public class SharedMessage {
         private String msg;
@@ -146,7 +145,6 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         send_all("request;logout;" + user);
         if (index != -1) {
             clientes.remove(index);
-            iseditor.remove(index);
             usernames.remove(index);
         }
     }
@@ -155,7 +153,6 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
     public void subscribe(String username, client_interface c, boolean editor) throws RemoteException {
         System.out.println("new client");
         this.clientes.add(c);
-        this.iseditor.add(editor);
         this.usernames.add(username);
         String[] notificacao = send_one_return_str("request;notification;" + username).split(";");
         for (String n : notificacao)
@@ -403,5 +400,5 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             }
         }
     }
-
+    
 }
