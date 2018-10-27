@@ -664,6 +664,10 @@ class MulticastServer extends Thread implements Serializable {
                         String notificacao = "Obteve privilégios de editor";
                         users.get(msg[3]).addNotificacao(notificacao);
                         sendString(socket, id + ";response;ignore");
+                        System.out.println("User "+msg[3]);
+                        for (String n : users.get(msg[3]).getNotificacoes()){
+                            System.out.println(n);
+                        }
                         return;
                     case "notification":
                         sendNotifications(users.get(msg[3]));
