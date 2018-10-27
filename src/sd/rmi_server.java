@@ -157,10 +157,10 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
         this.clientes.add(c);
         this.iseditor.add(editor);
         this.usernames.add(username);
-        String[] notificacao = send_one_return_str("request;notification;"+username).split(";");
+        String[] notificacao = send_one_return_str("request;notification;" + username).split(";");
         for (String n : notificacao)
             System.out.println(n);
-        if (notificacao.length >= 5){
+        if (notificacao.length >= 5) {
             sendMsg(username, notificacao[4]);
         }
     }
@@ -255,7 +255,7 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
             }
             String str = msg.getMsg();
             String[] temp = str.split(";");
-            if(temp.length == 3 ) return 0;
+            if (temp.length == 3) return 0;
             if (temp[3].equals("false")) {
                 return 0;
             } else {
@@ -393,27 +393,15 @@ public class rmi_server extends UnicastRemoteObject implements rmi_interface_cli
 
     public void notify(String msg) {
         for (int i = 0; i < clientes.size(); i++) {
-            String notify = send_all_return_str("request;notification;" + usernames.get(i));
+            String[] notify = send_all_return_str("request;notification;" + usernames.get(i)).split(";");
             try {
-                sendMsg(usernames.get(i), notify);
+                if (notify.length == 5) {
+                    sendMsg(usernames.get(i), notify[4]);
+                }
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    public String get_notifications(String username){
-        /*request;notification;username;
-        response;notification;username;mensagem*/
-        System.out.println("SENDING NOTIFICATIONS TO "+username);
-        String notification = send_all_return_str("request;notification;"+username);
-        String arr[] = notification.split(";");
-        if(arr.length > 3){
-            return arr[4];
-        }else{
-            return "";
-        }
-
     }
 
 }
