@@ -452,6 +452,18 @@ class MulticastServer extends Thread implements Serializable {
                                     }
                                 }
                         }
+                    case "music_list": {
+                        int count = 0;
+                        String resposta = "";
+                        for (music m : musicas){
+                            if (m.canGetMusic(msg[3])){
+                                resposta += m.getNome() + ";";
+                                count++;
+                            }
+                        }
+                        sendString(socket, id + ";response;music_list;" + count + ";" + resposta);
+                        return;
+                    }
                     case "music_search":
                         switch (msg[4]) {
                             case "nome": {
