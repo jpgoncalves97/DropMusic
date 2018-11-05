@@ -560,6 +560,7 @@ public class client_console extends UnicastRemoteObject implements client_interf
                                 } else if (change == 2){
                                     changestr = "descricao";
                                 }else{
+
                                     System.out.println("Input errado");
                                     break;
                                 }
